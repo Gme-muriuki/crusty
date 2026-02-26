@@ -1,4 +1,18 @@
+use crate::reader::Source;
 
-pub fn tokenize() {
-  println!("My work is to tokenize the source code");
+pub type Tokens = ();
+
+pub fn tokenize(source: Source) -> Result<Tokens, String> {
+    println!("Tokenize");
+    todo!()
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn is_alive() {
+        assert_eq!(true, true)
+    }
 }
