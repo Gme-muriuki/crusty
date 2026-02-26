@@ -1,8 +1,10 @@
 use std::{fs::File, io::Read, path::PathBuf};
 
 pub type Source = String;
+pub type RError = ();
 
-pub fn read_source(filename: &str) -> Result<Source, String> {
+pub fn read_source(filename: &str) -> Result<Source, RError> {
+    println!("Reading source");
     let mut file = File::open(filename).unwrap();
     let mut buffer = String::new();
     _ = file.read_to_string(&mut buffer).unwrap();

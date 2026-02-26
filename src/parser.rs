@@ -1,10 +1,11 @@
 use crate::tokenize::Tokens;
 
 pub type AST = ();
+pub type PError = ();
 
-pub fn parse(tokens: Tokens) -> AST {
+pub fn parse(tokens: Tokens) -> Result<AST, PError> {
     println!("Parsing");
-    todo!()
+    Ok(())
 }
 
 #[cfg(test)]

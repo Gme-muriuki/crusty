@@ -1,10 +1,11 @@
 use crate::reader::Source;
 
 pub type Tokens = ();
+pub type TError = ();
 
-pub fn tokenize(source: Source) -> Result<Tokens, String> {
+pub fn tokenize(source: Source) -> Result<Tokens, TError> {
     println!("Tokenize");
-    todo!()
+    Ok(())
 }
 
 #[cfg(test)]

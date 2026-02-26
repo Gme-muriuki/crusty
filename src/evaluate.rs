@@ -1,10 +1,11 @@
 use crate::parser::AST;
 
 pub type Output = ();
+pub type EvError = ();
 
-pub fn evaluate(ast: AST) -> Output {
+pub fn evaluate(ast: AST) -> Result<Output, EvError> {
     println!("Evaluating");
-    todo!()
+    Ok(())
 }
 
 #[cfg(test)]
