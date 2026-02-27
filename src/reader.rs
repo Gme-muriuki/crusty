@@ -1,15 +1,18 @@
-use std::{fs::File, io::Read, path::PathBuf};
+use std::{
+    fs::File,
+    io::{Error, Read},
+    path::PathBuf,
+};
 
-pub type Source = String;
-pub type RError = ();
+pub struct Source {}
+
+#[derive(Debug)]
+pub struct RError {}
 
 pub fn read_source(filename: &str) -> Result<Source, RError> {
     println!("Reading source");
-    let mut file = File::open(filename).unwrap();
-    let mut buffer = String::new();
-    _ = file.read_to_string(&mut buffer).unwrap();
 
-    Ok(buffer)
+    Ok(Source {})
 }
 
 #[cfg(test)]

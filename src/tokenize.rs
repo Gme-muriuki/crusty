@@ -1,11 +1,14 @@
 use crate::reader::Source;
 
-pub type Tokens = ();
-pub type TError = ();
+pub struct Tokens {}
+
+#[derive(Debug)]
+pub struct TError {}
 
 pub fn tokenize(source: Source) -> Result<Tokens, TError> {
     println!("Tokenize");
-    Ok(())
+
+    Ok(Tokens {})
 }
 
 #[cfg(test)]

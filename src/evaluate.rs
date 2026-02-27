@@ -1,11 +1,13 @@
 use crate::parser::AST;
 
-pub type Output = ();
-pub type EvError = ();
+pub struct Output {}
+
+#[derive(Debug)]
+pub struct EvError {}
 
 pub fn evaluate(ast: AST) -> Result<Output, EvError> {
     println!("Evaluating");
-    Ok(())
+    Ok(Output {})
 }
 
 #[cfg(test)]
