@@ -210,14 +210,23 @@ impl Scanner {
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
             '"' => self.string(),
-            c => {
-                if c.is_digit(10) {
-                    self.number();
-                };
+            c if c.is_digit(10) => {
+                self.number();
+            }
+
+            x if x.is_alphabetic() => {
+                self.identifier();
             }
 
             _ => (),
         }
+    }
+
+    fn identifier(&mut self) {
+        while self.peek().is_alphanumeric() || self.peek() == '_' {
+            self.advance();
+        }
+        self.add_token(TokenType::Identifier);
     }
 
     fn number(&mut self) {
@@ -378,6 +387,21 @@ mod test {
             vec![
                 Token::new(TokenType::Number, "1234", 1, Literal::Num(1234.0)),
                 Token::new(TokenType::Number, "231.23", 1, Literal::Num(231.23)),
+                Token::new(TokenType::EOF, "", 1, Literal::None)
+            ]
+        )
+    }
+
+    #[test]
+    fn test_identifiers() {
+        let mut scanner = Scanner::new("abc abc123 ab_bc");
+        let tokens = scanner.scan_tokens().unwrap();
+        assert_eq!(
+            tokens.tokens,
+            vec![
+                Token::new(TokenType::Identifier, "abc", 1, Literal::None),
+                Token::new(TokenType::Identifier, "abc123", 1, Literal::None),
+                Token::new(TokenType::Identifier, "ab_bc", 1, Literal::None),
                 Token::new(TokenType::EOF, "", 1, Literal::None)
             ]
         )
