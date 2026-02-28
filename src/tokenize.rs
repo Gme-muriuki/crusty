@@ -207,9 +207,31 @@ impl Scanner {
             // Ignore whitespaces
             ' ' | '\r' | '\t' => {}
             '\n' => self.line += 1,
+            '"' => self.string(),
 
             _ => (),
         }
+    }
+
+    fn string(&mut self) {
+        while (self.peek() != '"' && !self.is_at_end()) {
+            if self.peek() == '\n' {
+                self.line += 1;
+            }
+            self.advance();
+        }
+        // Unterminated string
+        if self.is_at_end() {
+            // todo!("Unterminated string");
+            return;
+        }
+        self.advance();
+
+        let value = self.source[self.start + 1..self.current - 1]
+            .iter()
+            .collect::<String>();
+
+        self.add_token_with_literal(TokenType::String, Literal::Str(value));
     }
 
     fn peek(&self) -> char {
@@ -271,11 +293,11 @@ mod test {
             ]
         )
     }
+
     #[test]
     fn test_double_character() {
         let mut scanner = Scanner::new("! != < <= > >= == =");
         let mut tokens = scanner.scan_tokens().unwrap();
-
         assert_eq!(
             tokens.tokens,
             vec![
@@ -288,6 +310,30 @@ mod test {
                 Token::new(TokenType::EqualEqual, "==", 1, Literal::None),
                 Token::new(TokenType::Equal, "=", 1, Literal::None),
                 Token::new(TokenType::EOF, "", 1, Literal::None),
+            ]
+        )
+    }
+
+    #[test]
+    fn test_string() {
+        let mut scanner = Scanner::new("\"Hello\" \"world\"");
+        let tokens = scanner.scan_tokens().unwrap();
+        assert_eq!(
+            tokens.tokens,
+            vec![
+                Token::new(
+                    TokenType::String,
+                    "\"Hello\"",
+                    1,
+                    Literal::Str("Hello".to_string())
+                ),
+                Token::new(
+                    TokenType::String,
+                    "\"world\"",
+                    1,
+                    Literal::Str("world".to_string())
+                ),
+                Token::new(TokenType::EOF, "", 1, Literal::None)
             ]
         )
     }
