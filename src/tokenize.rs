@@ -122,6 +122,17 @@ impl Scanner {
     pub fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
+    pub fn is_match(&mut self, expected: char) -> bool {
+        if self.is_at_end() {
+            return false;
+        }
+        if self.source[self.current] != expected {
+            return false;
+        }
+        self.current += 1;
+        true
+    }
+
     pub fn scan_tokens(&mut self) -> Result<Tokens, TError> {
         while !self.is_at_end() {
             self.start = self.current;
@@ -147,6 +158,44 @@ impl Scanner {
             '+' => self.add_token(TokenType::Plus),
             '*' => self.add_token(TokenType::Star),
             ';' => self.add_token(TokenType::SemiColon),
+            '!' => {
+                let toktype = if self.is_match('=') {
+                    TokenType::BangEqual
+                } else {
+                    TokenType::Bang
+                };
+
+                self.add_token(toktype)
+            }
+            '=' => {
+                let toktype = if self.is_match('=') {
+                    TokenType::EqualEqual
+                } else {
+                    TokenType::Equal
+                };
+
+                self.add_token(toktype);
+            }
+            '<' => {
+                let toktype = if self.is_match('=') {
+                    TokenType::LessEqual
+                } else {
+                    TokenType::Less
+                };
+
+                self.add_token(toktype);
+            }
+
+            '>' => {
+                let toktype = if self.is_match('=') {
+                    TokenType::GreaterEqual
+                } else {
+                    TokenType::Greater
+                };
+
+                self.add_token(toktype);
+            }
+
             _ => (),
         }
     }
@@ -198,6 +247,26 @@ mod test {
                 Token::new(TokenType::Minus, "-", 1, Literal::None),
                 Token::new(TokenType::SemiColon, ";", 1, Literal::None),
                 Token::new(TokenType::Star, "*", 1, Literal::None),
+                Token::new(TokenType::EOF, "", 1, Literal::None),
+            ]
+        )
+    }
+    #[test]
+    fn test_double_character() {
+        let mut scanner = Scanner::new("!!=<<=>>====");
+        let mut tokens = scanner.scan_tokens().unwrap();
+
+        assert_eq!(
+            tokens.tokens,
+            vec![
+                Token::new(TokenType::Bang, "!", 1, Literal::None),
+                Token::new(TokenType::BangEqual, "!=", 1, Literal::None),
+                Token::new(TokenType::Less, "<", 1, Literal::None),
+                Token::new(TokenType::LessEqual, "<=", 1, Literal::None),
+                Token::new(TokenType::Greater, ">", 1, Literal::None),
+                Token::new(TokenType::GreaterEqual, ">=", 1, Literal::None),
+                Token::new(TokenType::EqualEqual, "==", 1, Literal::None),
+                Token::new(TokenType::Equal, "=", 1, Literal::None),
                 Token::new(TokenType::EOF, "", 1, Literal::None),
             ]
         )
