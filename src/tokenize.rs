@@ -1,7 +1,6 @@
 use crate::reader::Source;
-use std::collections::HashMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
     // Single character tokens
     LeftParen,
@@ -49,7 +48,7 @@ pub enum TokenType {
     EOF,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     toktype: TokenType,
     lexeme: String,
@@ -58,7 +57,7 @@ pub struct Token {
     line: usize,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Str(String),
     Num(f64),
@@ -85,7 +84,7 @@ impl Token {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Tokens {
     tokens: Vec<Token>,
 }
@@ -101,6 +100,7 @@ pub fn tokenize(source: Source) -> Result<Tokens, TError> {
     Ok(Tokens { tokens })
 }
 
+#[derive(PartialEq, Debug)]
 pub struct Scanner {
     source: Vec<char>,
     tokens: Vec<Token>,
@@ -178,5 +178,28 @@ mod test {
     #[test]
     fn is_alive() {
         assert_eq!(true, true)
+    }
+
+    #[test]
+    fn test_single_character() {
+        let mut scanner = Scanner::new("(){},.+-;*");
+        let mut tokens = scanner.scan_tokens().unwrap();
+
+        assert_eq!(
+            tokens.tokens,
+            vec![
+                Token::new(TokenType::LeftParen, "(", 1, Literal::None),
+                Token::new(TokenType::RightParen, ")", 1, Literal::None),
+                Token::new(TokenType::LeftBraces, "{", 1, Literal::None),
+                Token::new(TokenType::RightBraces, "}", 1, Literal::None),
+                Token::new(TokenType::Comma, ",", 1, Literal::None),
+                Token::new(TokenType::Dot, ".", 1, Literal::None),
+                Token::new(TokenType::Plus, "+", 1, Literal::None),
+                Token::new(TokenType::Minus, "-", 1, Literal::None),
+                Token::new(TokenType::SemiColon, ";", 1, Literal::None),
+                Token::new(TokenType::Star, "*", 1, Literal::None),
+                Token::new(TokenType::EOF, "", 1, Literal::None),
+            ]
+        )
     }
 }
