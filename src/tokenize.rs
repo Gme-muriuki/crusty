@@ -195,8 +195,28 @@ impl Scanner {
 
                 self.add_token(toktype);
             }
+            '/' => {
+                if self.is_match('/') {
+                    while self.peek() != '\n' && self.is_at_end() {
+                        self.advance();
+                    }
+                } else {
+                    self.add_token(TokenType::Slash);
+                }
+            }
+            // Ignore whitespaces
+            ' ' | '\r' | '\t' => {}
+            '\n' => self.line += 1,
 
             _ => (),
+        }
+    }
+
+    fn peek(&self) -> char {
+        if self.is_at_end() {
+            '\x00'
+        } else {
+            self.source[self.current]
         }
     }
 
@@ -253,7 +273,7 @@ mod test {
     }
     #[test]
     fn test_double_character() {
-        let mut scanner = Scanner::new("!!=<<=>>====");
+        let mut scanner = Scanner::new("! != < <= > >= == =");
         let mut tokens = scanner.scan_tokens().unwrap();
 
         assert_eq!(
