@@ -1,6 +1,6 @@
 use std::ops::Deref;
 
-use crate::tokenize::{Literal, Token};
+use crate::tokenize::{Literal, Token, TokenType};
 
 #[derive(Debug)]
 pub enum Expr {
@@ -56,7 +56,7 @@ impl Expr {
             right: right.into(),
         }
     }
-    fn groupings(expression: Expr) -> Expr {
+    fn grouping(expression: Expr) -> Expr {
         Expr::Grouping {
             expression: expression.into(),
         }
@@ -71,17 +71,17 @@ pub fn fmt_expr(e: Expr) -> String {
             right,
         } => {
             format!(
-                "{} {} {}",
+                "({} {} {})",
                 operator.lexeme,
                 fmt_expr(*left),
                 fmt_expr(*right)
             )
         }
         Expr::Grouping { expression } => {
-            format!("group {}", fmt_expr(*expression))
+            format!("(group {})", fmt_expr(*expression))
         }
         Expr::Unary { operator, right } => {
-            format!("{} {}", operator.lexeme, fmt_expr(*right))
+            format!("({} {})", operator.lexeme, fmt_expr(*right))
         }
         Expr::Num { value } => {
             format!("{}", value)
@@ -94,4 +94,17 @@ pub fn fmt_expr(e: Expr) -> String {
             format!("{:?}", value)
         }
     }
+}
+
+pub fn main() {
+    let expression = Expr::binary(
+        Expr::unary(
+            Token::new(TokenType::Minus, "-", 1, Literal::None),
+            Expr::num(123.0),
+        ),
+        Token::new(TokenType::Star, "*", 1, Literal::None),
+        Expr::grouping(Expr::num(45.67)),
+    );
+
+    println!("{}", fmt_expr(expression));
 }

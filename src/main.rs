@@ -18,7 +18,6 @@ pub mod parser;
 pub mod reader;
 pub mod tokenize;
 
-
 #[derive(Debug)]
 pub enum IError {
     Reader(reader::RError),
@@ -85,6 +84,8 @@ fn run_prompt() {
 fn main() {
     println!("Hello, Lox");
 
+    ast::main();
+
     let args = env::args().collect::<Vec<String>>();
     println!("Args: {:#?}", args);
 
@@ -99,4 +100,3 @@ fn main() {
         eprintln!("Usage: lox [filename]")
     }
 }
-
