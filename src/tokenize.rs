@@ -53,11 +53,11 @@ pub enum TokenType {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
-    toktype: TokenType,
-    lexeme: String,
-    literal: Literal,
+    pub toktype: TokenType,
+    pub lexeme: String,
+    pub literal: Literal,
     // literal: object
-    line: usize,
+    pub line: usize,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -93,9 +93,12 @@ pub struct Tokens {
 }
 
 #[derive(Debug)]
-pub struct TError {}
+pub struct TError {
+    error: Vec<ScanError>,
+}
 
 pub fn tokenize(source: Source) -> Result<Tokens, TError> {
+    println!("Tokenizing...");
     Scanner::new(&source.contents).scan_tokens()
 }
 
@@ -106,6 +109,18 @@ pub struct Scanner {
     start: usize,
     current: usize,
     line: usize,
+    error: Vec<ScanError>,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ScanError {
+    UnexpectedCharacter { line: usize, ch: char },
+}
+
+impl ScanError {
+    pub fn new(line: usize, ch: char) -> Self {
+        Self::UnexpectedCharacter { line, ch }
+    }
 }
 
 impl Scanner {
@@ -116,11 +131,16 @@ impl Scanner {
             start: 0,
             current: 0,
             line: 1,
+            error: vec![],
         }
     }
     pub fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
+    pub fn error(&mut self, err: ScanError) {
+        self.error.push(err);
+    }
+
     pub fn is_match(&mut self, expected: char) -> bool {
         if self.is_at_end() {
             return false;
@@ -141,9 +161,15 @@ impl Scanner {
         self.tokens
             .push(Token::new(TokenType::EOF, "", self.line, Literal::None));
 
-        Ok(Tokens {
-            tokens: self.tokens.clone(),
-        })
+        if self.error.len() == 0 {
+            Ok(Tokens {
+                tokens: self.tokens.clone(),
+            })
+        } else {
+            Err(TError {
+                error: self.error.clone(),
+            })
+        }
     }
     pub fn scan_token(&mut self) {
         match self.advance() {
@@ -215,7 +241,11 @@ impl Scanner {
                 self.identifier();
             }
 
-            _ => (),
+            ch => {
+                println!("Entered this branch");
+                self.error(ScanError::new(self.line, ch));
+                println!("Errors: {:#?}", self.error)
+            }
         }
     }
 

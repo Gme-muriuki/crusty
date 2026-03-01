@@ -12,10 +12,12 @@ use crate::{
     tokenize::tokenize,
 };
 
+pub mod ast;
 pub mod evaluate;
 pub mod parser;
 pub mod reader;
 pub mod tokenize;
+
 
 #[derive(Debug)]
 pub enum IError {
@@ -97,3 +99,4 @@ fn main() {
         eprintln!("Usage: lox [filename]")
     }
 }
+
