@@ -46,6 +46,7 @@ pub enum TokenType {
     This,
     True,
     Var,
+    Return,
     //
     EOF,
 }
@@ -226,7 +227,30 @@ impl Scanner {
         while self.peek().is_alphanumeric() || self.peek() == '_' {
             self.advance();
         }
-        self.add_token(TokenType::Identifier);
+        // TODO:... Look for keyword
+        let lexeme = self.source[self.start..self.current]
+            .iter()
+            .collect::<String>();
+        let toktype = match &lexeme[..] {
+            "and" => TokenType::And,
+            "class" => TokenType::Class,
+            "if" => TokenType::If,
+            "else" => TokenType::Else,
+            "false" => TokenType::False,
+            "for" => TokenType::For,
+            "fun" => TokenType::Fun,
+            "nil" => TokenType::Nil,
+            "or" => TokenType::Or,
+            "print" => TokenType::Print,
+            "true" => TokenType::True,
+            "return" => TokenType::Return,
+            "super" => TokenType::Super,
+            "this" => TokenType::This,
+            "var" => TokenType::Var,
+            "while" => TokenType::While,
+            _ => TokenType::Identifier,
+        };
+        self.add_token(toktype);
     }
 
     fn number(&mut self) {
@@ -393,16 +417,31 @@ mod test {
     }
 
     #[test]
-    fn test_identifiers() {
-        let mut scanner = Scanner::new("abc abc123 ab_bc");
+    fn test_keywords() {
+        let mut scanner = Scanner::new(
+            "class and if while else false for fun nil or print return super this true var ",
+        );
         let tokens = scanner.scan_tokens().unwrap();
         assert_eq!(
             tokens.tokens,
             vec![
-                Token::new(TokenType::Identifier, "abc", 1, Literal::None),
-                Token::new(TokenType::Identifier, "abc123", 1, Literal::None),
-                Token::new(TokenType::Identifier, "ab_bc", 1, Literal::None),
-                Token::new(TokenType::EOF, "", 1, Literal::None)
+                Token::new(TokenType::Class, "class", 1, Literal::None),
+                Token::new(TokenType::And, "and", 1, Literal::None),
+                Token::new(TokenType::If, "if", 1, Literal::None),
+                Token::new(TokenType::While, "while", 1, Literal::None),
+                Token::new(TokenType::Else, "else", 1, Literal::None),
+                Token::new(TokenType::False, "false", 1, Literal::None),
+                Token::new(TokenType::For, "for", 1, Literal::None),
+                Token::new(TokenType::Fun, "fun", 1, Literal::None),
+                Token::new(TokenType::Nil, "nil", 1, Literal::None),
+                Token::new(TokenType::Or, "or", 1, Literal::None),
+                Token::new(TokenType::Print, "print", 1, Literal::None),
+                Token::new(TokenType::Return, "return", 1, Literal::None),
+                Token::new(TokenType::Super, "super", 1, Literal::None),
+                Token::new(TokenType::This, "this", 1, Literal::None),
+                Token::new(TokenType::True, "true", 1, Literal::None),
+                Token::new(TokenType::Var, "var", 1, Literal::None),
+                Token::new(TokenType::EOF, "", 1, Literal::None),
             ]
         )
     }
