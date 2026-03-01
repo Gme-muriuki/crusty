@@ -5,12 +5,12 @@ use std::{
 };
 
 pub struct Source {
-    contents: String,
+    pub contents: String,
 }
 
 impl Source {
     pub fn new(contents: String) -> Self {
-      Self { contents }
+        Self { contents }
     }
 }
 
@@ -36,7 +36,7 @@ pub fn read_source(filename: &str) -> Result<Source, RError> {
 
     let mut contents = String::new();
     _ = file.read_to_string(&mut contents);
-    println!("content: {}", contents);
+
     Ok(Source { contents })
 }
 

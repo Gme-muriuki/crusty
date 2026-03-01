@@ -51,6 +51,7 @@ impl From<evaluate::EvError> for IError {
 
 fn run(source: Source) -> Result<(), IError> {
     let tokens = tokenize(source)?;
+    print!("{:#?}", tokens);
     let ast = parse(tokens)?;
     let eval = evaluate(ast)?;
     Ok(())
@@ -64,7 +65,7 @@ fn run_file(filename: &str) -> Result<(), IError> {
 fn run_prompt() {
     let mut stdout = stdout();
     let mut stdin = stdin();
-    
+
     'lox: loop {
         stdout.write_all(b">").unwrap();
         stdout.flush().unwrap();

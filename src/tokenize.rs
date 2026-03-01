@@ -96,11 +96,7 @@ pub struct Tokens {
 pub struct TError {}
 
 pub fn tokenize(source: Source) -> Result<Tokens, TError> {
-    println!("Tokenize");
-
-    let tokens = vec![];
-
-    Ok(Tokens { tokens })
+    Scanner::new(&source.contents).scan_tokens()
 }
 
 #[derive(PartialEq, Debug)]
