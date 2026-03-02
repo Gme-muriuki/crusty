@@ -3,6 +3,11 @@ use std::ops::Deref;
 use crate::tokenize::{Literal, Token, TokenType};
 
 #[derive(Debug)]
+pub struct AST {
+   pub top: Option<Expr>,
+}
+
+#[derive(Debug)]
 pub enum Operator {
     OAdd,
     OSub,
