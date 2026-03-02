@@ -3,61 +3,78 @@ use std::ops::Deref;
 use crate::tokenize::{Literal, Token, TokenType};
 
 #[derive(Debug)]
+pub enum Operator {
+    OAdd,
+    OSub,
+    OMul,
+    ODiv,
+    OLt,
+    OLeq,
+    OGt,
+    OGeq,
+    OEq,
+    ONeq,
+    ONot,
+    OAnd,
+    OOr,
+}
+
+#[derive(Debug)]
 pub enum Expr {
-    Binary {
+    EBinary {
         left: Box<Expr>,
-        operator: Token,
+        operator: Operator,
         right: Box<Expr>,
     },
-    Grouping {
+    EGrouping {
         expression: Box<Expr>,
     },
-    Num {
+    ENum {
         value: f64,
     },
-    Str {
+    EStr {
         value: String,
     },
-    Nil,
-    Bool {
+    ENil,
+    EBool {
         value: bool,
     },
-    Unary {
-        operator: Token,
+    EUnary {
+        operator: Operator,
         right: Box<Expr>,
     },
 }
 
 impl Expr {
     fn str(value: impl Into<String>) -> Expr {
-        Expr::Str {
+        Expr::EStr {
             value: value.into(),
         }
     }
     fn bool(value: bool) -> Expr {
-        Expr::Bool { value }
+        Expr::EBool { value }
     }
     fn num(value: f64) -> Expr {
-        Expr::Num { value }
+        Expr::ENum { value }
     }
     fn nil() -> Expr {
-        Expr::Nil
+        Expr::ENil
     }
-    fn binary(left: Expr, operator: Token, right: Expr) -> Expr {
-        Expr::Binary {
+    fn binary(left: Expr, operator: Operator, right: Expr) -> Expr {
+        Expr::EBinary {
             left: left.into(),
             operator,
             right: right.into(),
         }
     }
-    fn unary(operator: Token, right: Expr) -> Expr {
-        Expr::Unary {
+    fn unary(operator: Operator, right: Expr) -> Expr {
+        Expr::EUnary {
             operator,
             right: right.into(),
         }
     }
     fn grouping(expression: Expr) -> Expr {
-        Expr::Grouping {
+        Expr::EGrouping {
             expression: expression.into(),
         }
     }
@@ -65,46 +82,63 @@ impl Expr {
 
 pub fn fmt_expr(e: Expr) -> String {
     match e {
-        Expr::Binary {
+        Expr::EBinary {
             left,
             operator,
             right,
         } => {
             format!(
                 "({} {} {})",
-                operator.lexeme,
+                fmt_ops(&operator),
                 fmt_expr(*left),
                 fmt_expr(*right)
             )
         }
-        Expr::Grouping { expression } => {
+        Expr::EGrouping { expression } => {
             format!("(group {})", fmt_expr(*expression))
         }
-        Expr::Unary { operator, right } => {
-            format!("({} {})", operator.lexeme, fmt_expr(*right))
+        Expr::EUnary { operator, right } => {
+            format!("({} {})", fmt_ops(&operator), fmt_expr(*right))
         }
-        Expr::Num { value } => {
+        Expr::ENum { value } => {
             format!("{}", value)
         }
-        Expr::Str { value } => {
+        Expr::EStr { value } => {
             format!("{:?}", value)
         }
-        Expr::Nil => "nil".to_string(),
-        Expr::Bool { value } => {
+        Expr::ENil => "nil".to_string(),
+        Expr::EBool { value } => {
             format!("{:?}", value)
         }
     }
 }
 
+fn fmt_ops(operation: &Operator) -> &'static str {
+    match operation {
+        Operator::OAdd => "+",
+        Operator::OSub => "-",
+        Operator::OMul => "*",
+        Operator::ODiv => "/",
+        Operator::OLt => "<",
+        Operator::OLeq => "<=",
+        Operator::OGt => ">",
+        Operator::OGeq => ">=",
+        Operator::OEq => "==",
+        Operator::ONeq => "!=",
+        Operator::ONot => "!",
+        Operator::OAnd => "and",
+        Operator::OOr => "or",
+    }
+}
+
 pub fn main() {
+    println!("Inside the ast file");
     let expression = Expr::binary(
-        Expr::unary(
-            Token::new(TokenType::Minus, "-", 1, Literal::None),
-            Expr::num(123.0),
-        ),
-        Token::new(TokenType::Star, "*", 1, Literal::None),
+        Expr::unary(Operator::OSub, Expr::num(123.0)),
+        Operator::OMul,
         Expr::grouping(Expr::num(45.67)),
     );
 
     println!("{}", fmt_expr(expression));
+    println!("Outside the ast file");
 }
