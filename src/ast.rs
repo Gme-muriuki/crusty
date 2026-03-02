@@ -4,7 +4,7 @@ use crate::tokenize::{Literal, Token, TokenType};
 
 #[derive(Debug)]
 pub struct AST {
-   pub top: Option<Expr>,
+    pub top: Option<Expr>,
 }
 
 #[derive(Debug)]
@@ -35,7 +35,7 @@ pub enum Expr {
         expression: Box<Expr>,
     },
     ENum {
-        value: f64,
+        value: String,
     },
     EStr {
         value: String,
@@ -51,34 +51,36 @@ pub enum Expr {
 }
 
 impl Expr {
-    fn str(value: impl Into<String>) -> Expr {
+    pub fn str(value: impl Into<String>) -> Expr {
         Expr::EStr {
             value: value.into(),
         }
     }
-    fn bool(value: bool) -> Expr {
+    pub fn bool(value: bool) -> Expr {
         Expr::EBool { value }
     }
-    fn num(value: f64) -> Expr {
-        Expr::ENum { value }
+    pub fn num(value: impl Into<String>) -> Expr {
+        Expr::ENum {
+            value: value.into(),
+        }
     }
-    fn nil() -> Expr {
+    pub fn nil() -> Expr {
         Expr::ENil
     }
-    fn binary(left: Expr, operator: Operator, right: Expr) -> Expr {
+    pub fn binary(left: Expr, operator: Operator, right: Expr) -> Expr {
         Expr::EBinary {
             left: left.into(),
             operator,
             right: right.into(),
         }
     }
-    fn unary(operator: Operator, right: Expr) -> Expr {
+    pub fn unary(operator: Operator, right: Expr) -> Expr {
         Expr::EUnary {
             operator,
             right: right.into(),
         }
     }
-    fn grouping(expression: Expr) -> Expr {
+    pub fn grouping(expression: Expr) -> Expr {
         Expr::EGrouping {
             expression: expression.into(),
         }
@@ -139,9 +141,9 @@ fn fmt_ops(operation: &Operator) -> &'static str {
 pub fn main() {
     println!("Inside the ast file");
     let expression = Expr::binary(
-        Expr::unary(Operator::OSub, Expr::num(123.0)),
+        Expr::unary(Operator::OSub, Expr::num("123.0")),
         Operator::OMul,
-        Expr::grouping(Expr::num(45.67)),
+        Expr::grouping(Expr::num("45.67")),
     );
 
     println!("{}", fmt_expr(expression));
