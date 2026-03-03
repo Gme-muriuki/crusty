@@ -65,7 +65,7 @@ impl Parser {
     fn last_lexeme(&self) -> &String {
         &self.tokens[self.size - 1].lexeme
     }
-    fn parse_term(&mut self) -> Expr {
+    fn parse_primary(&mut self) -> Expr {
         if self.accept(TokenType::Number) {
             Expr::num(self.last_lexeme())
         } else if self.accept(TokenType::String) {
@@ -75,7 +75,7 @@ impl Parser {
         }
     }
     fn parse_expr(&mut self) -> Expr {
-        let left = self.parse_term();
+        let left = self.parse_primary();
         if self.accepts([
             TokenType::Plus,
             TokenType::Minus,
@@ -83,7 +83,7 @@ impl Parser {
             TokenType::Star,
         ]) {
             let ops = Operator::from(self.last_token());
-            let right = self.parse_term();
+            let right = self.parse_primary();
             Expr::binary(left, ops, right)
         } else {
             left
@@ -118,7 +118,7 @@ mod test {
         assert_eq!(true, true)
     }
     #[test]
-    fn test_term() {
+    fn test_primary() {
         assert_eq!(
             parse_string("123"),
             AST {
