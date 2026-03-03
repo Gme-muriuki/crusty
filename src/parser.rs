@@ -126,4 +126,14 @@ mod test {
             }
         )
     }
+
+    #[test]
+    fn test_binary() {
+        assert_eq!(
+            parse_string("1 + 2"),
+            AST {
+                top: Some(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
+            }
+        )
+    }
 }
