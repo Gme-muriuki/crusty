@@ -65,11 +65,31 @@ impl Parser {
     fn last_lexeme(&self) -> &String {
         &self.tokens[self.size - 1].lexeme
     }
+    fn expect(&mut self, toktype: TokenType, msg: &str) {
+        if !self.accept(toktype.clone()) {
+            panic!("Syntax error: {msg}");
+        }
+    }
+
     fn parse_primary(&mut self) -> Expr {
         if self.accept(TokenType::Number) {
             Expr::num(self.last_lexeme())
         } else if self.accept(TokenType::String) {
             Expr::str(self.last_lexeme())
+        } else if self.accept(TokenType::LeftParen) {
+            let expr = self.parse_expr();
+            self.expect(TokenType::RightParen, "Expected ')' after expression");
+            Expr::grouping(expr)
+        } else if self.accept(TokenType::LeftBraces) {
+            let expr = self.parse_expr();
+            self.expect(TokenType::RightBraces, "Expected '}' after expression");
+            Expr::grouping(expr)
+        } else if self.accept(TokenType::True) {
+            Expr::bool(true)
+        } else if self.accept(TokenType::False) {
+            Expr::bool(false)
+        } else if self.accept(TokenType::Nil) {
+            Expr::nil()
         } else {
             panic!("Syntax error");
         }
@@ -124,6 +144,12 @@ mod test {
             AST {
                 top: Some(Expr::num("123"))
             }
+        );
+        assert_eq!(
+            parse_string("\"Hello\""),
+            AST {
+                top: Some(Expr::str("\"Hello\""))
+            }
         )
     }
 
@@ -133,6 +159,54 @@ mod test {
             parse_string("1 + 2"),
             AST {
                 top: Some(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
+            }
+        )
+    }
+
+    #[test]
+    fn test_bool() {
+        assert_eq!(
+            parse_string("true"),
+            AST {
+                top: Some(Expr::bool(true))
+            }
+        );
+        assert_eq!(
+            parse_string("false"),
+            AST {
+                top: Some(Expr::bool(false))
+            }
+        )
+    }
+    #[test]
+    fn test_grouping() {
+        assert_eq!(
+            parse_string("{ 1 + 2}"),
+            AST {
+                top: Some(Expr::grouping(Expr::binary(
+                    Expr::num("1"),
+                    Operator::OAdd,
+                    Expr::num("2")
+                )))
+            }
+        );
+        assert_eq!(
+            parse_string("( 1 + 2 )"),
+            AST {
+                top: Some(Expr::grouping(Expr::binary(
+                    Expr::num("1"),
+                    Operator::OAdd,
+                    Expr::num("2")
+                )))
+            }
+        )
+    }
+    #[test]
+    fn test_nil() {
+        assert_eq!(
+            parse_string(" "),
+            AST {
+                top: Some(Expr::nil())
             }
         )
     }

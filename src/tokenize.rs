@@ -152,7 +152,7 @@ impl Scanner {
         true
     }
 
-    pub fn scan_tokens(&mut self) -> Result<Tokens, TError> {
+    pub fn scan_tokens(mut self) -> Result<Tokens, TError> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();
@@ -163,12 +163,10 @@ impl Scanner {
 
         if self.error.len() == 0 {
             Ok(Tokens {
-                tokens: self.tokens.clone(),
+                tokens: self.tokens,
             })
         } else {
-            Err(TError {
-                error: self.error.clone(),
-            })
+            Err(TError { error: self.error })
         }
     }
     pub fn scan_token(&mut self) {
