@@ -9,8 +9,10 @@ pub struct Source {
 }
 
 impl Source {
-    pub fn new(contents: String) -> Self {
-        Self { contents }
+    pub fn new(contents: impl Into<String>) -> Self {
+        Self {
+            contents: contents.into(),
+        }
     }
 }
 

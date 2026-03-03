@@ -2,12 +2,12 @@ use std::ops::Deref;
 
 use crate::tokenize::{Literal, Token, TokenType};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AST {
     pub top: Option<Expr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Operator {
     OAdd,
     OSub,
@@ -24,7 +24,7 @@ pub enum Operator {
     OOr,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Expr {
     EBinary {
         left: Box<Expr>,

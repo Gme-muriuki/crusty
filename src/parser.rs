@@ -34,6 +34,12 @@ struct Parser {
 pub struct PError {}
 
 impl Parser {
+    pub fn new(tokens: Tokens) -> Self {
+        Self {
+            tokens: tokens.tokens,
+            size: 0,
+        }
+    }
     pub fn accept(&mut self, toktype: TokenType) -> bool {
         if !self.at_end() && self.tokens[self.size].toktype == toktype {
             self.size += 1;
@@ -83,19 +89,41 @@ impl Parser {
             left
         }
     }
+    pub fn parse_top(&mut self) -> Result<AST, PError> {
+        Ok(AST {
+            top: Some(self.parse_expr()),
+        })
+    }
 }
 
 pub fn parse(tokens: Tokens) -> Result<AST, PError> {
     println!("Parsing");
-    Ok(AST { top: None })
+    Ok(Parser::new(tokens).parse_top().unwrap())
 }
 
 #[cfg(test)]
 mod test {
+    use crate::{reader::Source, tokenize::tokenize};
+
     use super::*;
 
+    // Helper:
+    fn parse_string(s: &str) -> AST {
+        let source = Source::new(s);
+        let tokens = tokenize(source).unwrap();
+        parse(tokens).unwrap()
+    }
     #[test]
     fn is_alive() {
         assert_eq!(true, true)
+    }
+    #[test]
+    fn test_term() {
+        assert_eq!(
+            parse_string("123"),
+            AST {
+                top: Some(Expr::num("123"))
+            }
+        )
     }
 }
