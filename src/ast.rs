@@ -4,7 +4,7 @@ use crate::tokenize::{Literal, Token, TokenType};
 
 #[derive(Debug, PartialEq)]
 pub struct AST {
-    pub top: Option<Expr>,
+    pub top: Expr,
 }
 
 #[derive(Debug, PartialEq)]

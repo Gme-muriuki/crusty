@@ -78,7 +78,7 @@ impl Parser {
     fn syntax_error(&self, msg: impl Into<String>) -> PError {
         PError::SyntaxError {
             line: self.tokens[self.size].line,
-            msg: msg.into(),
+            msg: format!("{} at {:?}", msg.into(), self.tokens[self.size].lexeme),
         }
     }
 
@@ -119,9 +119,11 @@ impl Parser {
         }
     }
     pub fn parse_top(&mut self) -> Result<AST, PError> {
-        Ok(AST {
-            top: Some(self.parse_expr()?),
-        })
+        let top = self.parse_expr()?;
+        if !self.at_end() {
+            return Err(self.syntax_error("Unparsed inputs"));
+        }
+        Ok(AST { top })
     }
 }
 
@@ -151,19 +153,19 @@ mod test {
         assert_eq!(
             parse_string("123"),
             AST {
-                top: Some(Expr::num("123"))
+                top: Expr::num("123")
             }
         );
         assert_eq!(
             parse_string("\"Hello\""),
             AST {
-                top: Some(Expr::str("\"Hello\""))
+                top: Expr::str("\"Hello\"")
             }
         );
         assert_eq!(
             parse_string("(2)"),
             AST {
-                top: Some(Expr::grouping(Expr::num("2")))
+                top: Expr::grouping(Expr::num("2"))
             }
         )
     }
@@ -173,7 +175,7 @@ mod test {
         assert_eq!(
             parse_string("1 + 2"),
             AST {
-                top: Some(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
+                top: Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2"))
             }
         )
     }
@@ -183,13 +185,13 @@ mod test {
         assert_eq!(
             parse_string("true"),
             AST {
-                top: Some(Expr::bool(true))
+                top: Expr::bool(true)
             }
         );
         assert_eq!(
             parse_string("false"),
             AST {
-                top: Some(Expr::bool(false))
+                top: Expr::bool(false)
             }
         )
     }
@@ -198,21 +200,13 @@ mod test {
         assert_eq!(
             parse_string("{ 1 + 2}"),
             AST {
-                top: Some(Expr::grouping(Expr::binary(
-                    Expr::num("1"),
-                    Operator::OAdd,
-                    Expr::num("2")
-                )))
+                top: Expr::grouping(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
             }
         );
         assert_eq!(
             parse_string("( 1 + 2 )"),
             AST {
-                top: Some(Expr::grouping(Expr::binary(
-                    Expr::num("1"),
-                    Operator::OAdd,
-                    Expr::num("2")
-                )))
+                top: Expr::grouping(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
             }
         )
     }
