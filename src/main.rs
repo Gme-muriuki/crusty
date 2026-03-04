@@ -52,8 +52,9 @@ impl From<evaluate::EvError> for IError {
 
 fn run(source: Source) -> Result<(), IError> {
     let tokens = tokenize(source)?;
-    print!("{:#?}", tokens);
+    print!("Tokens: {:#?}", tokens);
     let ast = parse(tokens)?;
+    println!("AST: {:#?}", ast);
     let eval = evaluate(ast)?;
     Ok(())
 }

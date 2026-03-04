@@ -31,7 +31,9 @@ struct Parser {
     size: usize,
 }
 #[derive(Debug)]
-pub struct PError {}
+pub enum PError {
+    SyntaxError { line: usize, msg: String },
+}
 
 impl Parser {
     pub fn new(tokens: Tokens) -> Self {
@@ -65,37 +67,44 @@ impl Parser {
     fn last_lexeme(&self) -> &String {
         &self.tokens[self.size - 1].lexeme
     }
-    fn expect(&mut self, toktype: TokenType, msg: &str) {
+    fn expect(&mut self, toktype: TokenType, msg: &str) -> Result<(), PError> {
         if !self.accept(toktype.clone()) {
-            panic!("Syntax error: {msg}");
+            Err(self.syntax_error(msg))
+        } else {
+            Ok(())
         }
     }
 
-    fn parse_primary(&mut self) -> Expr {
-        if self.accept(TokenType::Number) {
-            Expr::num(self.last_lexeme())
-        } else if self.accept(TokenType::String) {
-            Expr::str(self.last_lexeme())
-        } else if self.accept(TokenType::LeftParen) {
-            let expr = self.parse_expr();
-            self.expect(TokenType::RightParen, "Expected ')' after expression");
-            Expr::grouping(expr)
-        } else if self.accept(TokenType::LeftBraces) {
-            let expr = self.parse_expr();
-            self.expect(TokenType::RightBraces, "Expected '}' after expression");
-            Expr::grouping(expr)
-        } else if self.accept(TokenType::True) {
-            Expr::bool(true)
-        } else if self.accept(TokenType::False) {
-            Expr::bool(false)
-        } else if self.accept(TokenType::Nil) {
-            Expr::nil()
-        } else {
-            panic!("Syntax error");
+    fn syntax_error(&self, msg: impl Into<String>) -> PError {
+        PError::SyntaxError {
+            line: self.tokens[self.size].line,
+            msg: msg.into(),
         }
     }
-    fn parse_expr(&mut self) -> Expr {
-        let left = self.parse_primary();
+
+    fn parse_primary(&mut self) -> Result<Expr, PError> {
+        if self.accept(TokenType::Number) {
+            Ok(Expr::num(self.last_lexeme()))
+        } else if self.accept(TokenType::String) {
+            Ok(Expr::str(self.last_lexeme()))
+        } else if self.accept(TokenType::LeftParen) {
+            let expr = self.parse_expr()?;
+            self.expect(TokenType::RightParen, "Expected ')' after expression")?;
+            Ok(Expr::grouping(expr))
+        } else if self.accept(TokenType::LeftBraces) {
+            let expr = self.parse_expr()?;
+            self.expect(TokenType::RightBraces, "Expected '}' after expression")?;
+            Ok(Expr::grouping(expr))
+        } else if self.accept(TokenType::True) {
+            Ok(Expr::bool(true))
+        } else if self.accept(TokenType::False) {
+            Ok(Expr::bool(false))
+        } else {
+            Err(self.syntax_error("Expected primary"))
+        }
+    }
+    fn parse_expr(&mut self) -> Result<Expr, PError> {
+        let left = self.parse_primary()?;
         if self.accepts([
             TokenType::Plus,
             TokenType::Minus,
@@ -103,22 +112,22 @@ impl Parser {
             TokenType::Star,
         ]) {
             let ops = Operator::from(self.last_token());
-            let right = self.parse_primary();
-            Expr::binary(left, ops, right)
+            let right = self.parse_primary()?;
+            Ok(Expr::binary(left, ops, right))
         } else {
-            left
+            Ok(left)
         }
     }
     pub fn parse_top(&mut self) -> Result<AST, PError> {
         Ok(AST {
-            top: Some(self.parse_expr()),
+            top: Some(self.parse_expr()?),
         })
     }
 }
 
 pub fn parse(tokens: Tokens) -> Result<AST, PError> {
     println!("Parsing");
-    Ok(Parser::new(tokens).parse_top().unwrap())
+    Ok(Parser::new(tokens).parse_top()?)
 }
 
 #[cfg(test)]
@@ -149,6 +158,12 @@ mod test {
             parse_string("\"Hello\""),
             AST {
                 top: Some(Expr::str("\"Hello\""))
+            }
+        );
+        assert_eq!(
+            parse_string("(2)"),
+            AST {
+                top: Some(Expr::grouping(Expr::num("2")))
             }
         )
     }
@@ -198,15 +213,6 @@ mod test {
                     Operator::OAdd,
                     Expr::num("2")
                 )))
-            }
-        )
-    }
-    #[test]
-    fn test_nil() {
-        assert_eq!(
-            parse_string(" "),
-            AST {
-                top: Some(Expr::nil())
             }
         )
     }
