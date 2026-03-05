@@ -106,7 +106,7 @@ impl Parser {
         }
     }
     fn parse_expr(&mut self) -> Result<Expr, PError> {
-        let left = self.parse_primary()?;
+        let left = self.parse_unary()?;
         if self.accepts([
             TokenType::Plus,
             TokenType::Minus,
@@ -121,7 +121,7 @@ impl Parser {
             TokenType::BangEqual,
         ]) {
             let ops = Operator::from(self.last_token());
-            let right = self.parse_primary()?;
+            let right = self.parse_unary()?;
             Ok(Expr::binary(left, ops, right))
         } else {
             Ok(left)
@@ -133,6 +133,14 @@ impl Parser {
             return Err(self.syntax_error("Unparsed inputs"));
         }
         Ok(AST { top })
+    }
+    pub fn parse_unary(&mut self) -> Result<Expr, PError> {
+        if self.accepts([TokenType::Bang, TokenType::Minus]) {
+            let ops = Operator::from(self.last_token());
+            Ok(Expr::unary(ops, self.parse_unary()?))
+        } else {
+            self.parse_primary()
+        }
     }
 }
 

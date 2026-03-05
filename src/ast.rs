@@ -7,7 +7,7 @@ pub struct AST {
     pub top: Expr,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Operator {
     OAdd,
     OSub,
