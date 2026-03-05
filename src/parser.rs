@@ -59,7 +59,7 @@ impl Parser {
         }
     }
     fn at_end(&self) -> bool {
-        self.size >= self.tokens.len()
+        self.size >= self.tokens.len() || self.tokens[self.size].toktype == TokenType::EOF
     }
     fn last_token(&self) -> &Token {
         &self.tokens[self.size - 1]
@@ -99,6 +99,8 @@ impl Parser {
             Ok(Expr::bool(true))
         } else if self.accept(TokenType::False) {
             Ok(Expr::bool(false))
+        } else if self.accept(TokenType::EOF) {
+            Ok(Expr::nil())
         } else {
             Err(self.syntax_error("Expected primary"))
         }
@@ -110,6 +112,13 @@ impl Parser {
             TokenType::Minus,
             TokenType::Slash,
             TokenType::Star,
+            TokenType::Less,
+            TokenType::LessEqual,
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Equal,
+            TokenType::EqualEqual,
+            TokenType::BangEqual,
         ]) {
             let ops = Operator::from(self.last_token());
             let right = self.parse_primary()?;

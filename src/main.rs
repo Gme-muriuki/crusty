@@ -77,7 +77,7 @@ fn run_prompt() {
 
         match run(source) {
             Ok(_) => println!("Hexa"),
-            Err(_) => eprintln!("Nah!! Nah!!"),
+            Err(e) => eprintln!("{:#?}", e),
         }
     }
 }
