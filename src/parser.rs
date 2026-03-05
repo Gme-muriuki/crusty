@@ -7,7 +7,7 @@ impl From<&Token> for Operator {
     fn from(tok: &Token) -> Self {
         match tok.toktype {
             TokenType::Plus => Operator::OAdd,
-            TokenType::Minus => Operator::ODiv,
+            TokenType::Minus => Operator::OSub,
             TokenType::Star => Operator::OMul,
             TokenType::Slash => Operator::ODiv,
             TokenType::Less => Operator::OLt,
@@ -99,7 +99,7 @@ impl Parser {
             Ok(Expr::bool(true))
         } else if self.accept(TokenType::False) {
             Ok(Expr::bool(false))
-        } else if self.accept(TokenType::EOF) {
+        } else if self.accept(TokenType::Nil) {
             Ok(Expr::nil())
         } else {
             Err(self.syntax_error("Expected primary"))
@@ -176,7 +176,20 @@ mod test {
             AST {
                 top: Expr::grouping(Expr::num("2"))
             }
-        )
+        );
+        assert_eq!(
+            parse_string("true"),
+            AST {
+                top: Expr::bool(true)
+            }
+        );
+        assert_eq!(
+            parse_string("false"),
+            AST {
+                top: Expr::bool(false)
+            }
+        );
+        assert_eq!(parse_string("nil"), AST { top: Expr::nil() });
     }
 
     #[test]
