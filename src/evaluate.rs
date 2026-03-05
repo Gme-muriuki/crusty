@@ -12,9 +12,9 @@ pub enum LoxValue {
 #[derive(Debug)]
 pub struct EvError {}
 
-pub fn evaluate(_ast: AST) -> Result<Output, EvError> {
+pub fn evaluate(ast: AST) -> Result<Output, EvError> {
     println!("Evaluating....");
-    Ok(Output::LNill)
+    evaluate_expression(&ast.top)
 }
 
 pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
@@ -25,10 +25,10 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
             right,
         } => todo!(),
         Expr::EGrouping { expression } => todo!(),
-        Expr::ENum { value } => todo!(),
-        Expr::EStr { value } => todo!(),
-        Expr::ENil => todo!(),
-        Expr::EBool { value } => todo!(),
+        Expr::ENum { value } => Output::LNumber(value.parse().unwrap()),
+        Expr::EStr { value } => Output::LString(value.clone()),
+        Expr::ENil => Output::LNill,
+        Expr::EBool { value } => Output::LBoolean(*value),
         Expr::EUnary { operator, right } => todo!(),
     })
 }

@@ -56,6 +56,7 @@ fn run(source: Source) -> Result<(), IError> {
     let ast = parse(tokens)?;
     println!("AST: {:#?}", ast);
     let eval = evaluate(ast)?;
+    println!("Eval: {:#?}", eval);
     Ok(())
 }
 
