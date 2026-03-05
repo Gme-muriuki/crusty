@@ -10,7 +10,9 @@ pub enum LoxValue {
     LString(String),
 }
 #[derive(Debug)]
-pub struct EvError {}
+pub enum EvError {
+    ZeroDivision,
+}
 
 pub fn evaluate(ast: AST) -> Result<Output, EvError> {
     println!("Evaluating....");
@@ -35,8 +37,8 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
                     LoxValue::LNumber(left - right)
                 }
                 (LoxValue::LNumber(left), ODiv, LoxValue::LNumber(right)) => {
-                    if right == 0.0 || left == 0.0 {
-                        panic!("Cannot divide by 0")
+                    if right == 0.0 {
+                        return Err(EvError::ZeroDivision);
                     }
                     LoxValue::LNumber(left / right)
                 }
