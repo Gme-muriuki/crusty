@@ -2,7 +2,7 @@ use crate::ast::{AST, Expr, Operator::*};
 
 pub type Output = LoxValue;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, PartialOrd)]
 pub enum LoxValue {
     LNill,
     LBoolean(bool),
@@ -27,6 +27,7 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
             let left = evaluate_expression(&left)?;
             let right = evaluate_expression(&right)?;
             match (left, operator, right) {
+                // Numeric ops.
                 (LoxValue::LNumber(left), OAdd, LoxValue::LNumber(right)) => {
                     LoxValue::LNumber(left + right)
                 }
@@ -42,9 +43,17 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
                 (LoxValue::LNumber(left), OMul, LoxValue::LNumber(right)) => {
                     LoxValue::LNumber(left * right)
                 }
+                // String ops
                 (LoxValue::LString(left), OAdd, LoxValue::LString(right)) => {
                     LoxValue::LString(format!("{left} {right}"))
                 }
+                // Equality works with any combination of values
+                (left, OLt, right) => LoxValue::LBoolean(left < right),
+                (left, OLeq, right) => LoxValue::LBoolean(left <= right),
+                (left, OGt, right) => LoxValue::LBoolean(left > right),
+                (left, OGeq, right) => LoxValue::LBoolean(left >= right),
+                (left, OEq, right) => LoxValue::LBoolean(left == right),
+                (left, ONeq, right) => LoxValue::LBoolean(left != right),
                 _ => panic!("Unsupported operation"),
             }
         }
