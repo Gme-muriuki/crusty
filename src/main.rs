@@ -96,7 +96,7 @@ fn main() {
     } else if args.len() == 2 {
         match run_file(&args[1]) {
             Ok(_) => println!("Success!! It worked"),
-            Err(_) => println!("Failed!!, I don't know why"),
+            Err(err) => eprintln!("Error: {:#?}", err),
         }
     } else {
         eprintln!("Usage: lox [filename]")

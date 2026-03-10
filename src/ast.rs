@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{fmt::Display, ops::Deref};
 
 use crate::tokenize::{Literal, Token, TokenType};
 
@@ -22,6 +22,26 @@ pub enum Operator {
     ONot,
     OAnd,
     OOr,
+}
+
+impl Display for Operator {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(match self {
+            Operator::OAdd => "+",
+            Operator::OSub => "-",
+            Operator::OMul => "*",
+            Operator::ODiv => "/",
+            Operator::OLt => "<",
+            Operator::OLeq => "<=",
+            Operator::OGt => ">",
+            Operator::OGeq => ">=",
+            Operator::OEq => "=",
+            Operator::ONeq => "!=",
+            Operator::ONot => "!",
+            Operator::OAnd => "and",
+            Operator::OOr => "or",
+        })
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -117,6 +137,24 @@ pub fn fmt_expr(e: Expr) -> String {
         Expr::EBool { value } => {
             format!("{:?}", value)
         }
+    }
+}
+
+// Statements
+#[derive(Debug, PartialEq)]
+pub enum Stmt {
+    SPrint { expression: Expr },
+    SExpression { expression: Expr },
+}
+
+// constructors for statements
+impl Stmt {
+    pub fn print(expression: Expr) -> Stmt {
+        Stmt::SPrint { expression }
+    }
+
+    pub fn expression(expression: Expr) -> Stmt {
+        Stmt::SExpression { expression }
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::{
-    ast::{AST, Expr, Operator},
+    ast::{AST, Expr, Operator, Stmt},
     tokenize::{Token, TokenType, Tokens},
 };
 
@@ -67,7 +67,7 @@ impl Parser {
     fn last_lexeme(&self) -> &String {
         &self.tokens[self.size - 1].lexeme
     }
-    fn expect(&mut self, toktype: TokenType, msg: &str) -> Result<(), PError> {
+    fn consume(&mut self, toktype: TokenType, msg: &str) -> Result<(), PError> {
         if !self.accept(toktype.clone()) {
             Err(self.syntax_error(msg))
         } else {
@@ -89,11 +89,11 @@ impl Parser {
             Ok(Expr::str(self.last_lexeme()))
         } else if self.accept(TokenType::LeftParen) {
             let expr = self.parse_expr()?;
-            self.expect(TokenType::RightParen, "Expected ')' after expression")?;
+            self.consume(TokenType::RightParen, "Expected ')' after expression")?;
             Ok(Expr::grouping(expr))
         } else if self.accept(TokenType::LeftBraces) {
             let expr = self.parse_expr()?;
-            self.expect(TokenType::RightBraces, "Expected '}' after expression")?;
+            self.consume(TokenType::RightBraces, "Expected '}' after expression")?;
             Ok(Expr::grouping(expr))
         } else if self.accept(TokenType::True) {
             Ok(Expr::bool(true))
@@ -106,6 +106,7 @@ impl Parser {
         }
     }
     fn parse_expr(&mut self) -> Result<Expr, PError> {
+        println!("Parsing expression");
         let left = self.parse_unary()?;
         if self.accepts([
             TokenType::Plus,
@@ -141,6 +142,36 @@ impl Parser {
         } else {
             self.parse_primary()
         }
+    }
+
+    // Parsing expression
+    pub fn parse_statements(&mut self) -> Result<Vec<Stmt>, PError> {
+        // parse zero or more statements until we reach the end of the file. Each statement can be a print statement, an expression statement, a variable declaration, etc.
+        let mut statements = Vec::new();
+        while !self.at_end() {
+            statements.push(self.parse_statement()?);
+        }
+        Ok(statements)
+    }
+    pub fn parse_statement(&mut self) -> Result<Stmt, PError> {
+        // parse a single statement, which can be a print statement, an expression statement, a variable declaration, etc.
+        if self.accept(TokenType::Print) {
+            self.parse_print()
+        } else {
+            self.parse_expression_statement()
+        }
+    }
+
+    pub fn parse_print(&mut self) -> Result<Stmt, PError> {
+        // parse a print statement, which consists of the 'print' keyword followed by an expression and a semicolon.
+        let value = self.parse_expr()?;
+        self.consume(TokenType::SemiColon, "Expected ';' after value")?;
+        Ok(Stmt::print(value))
+    }
+
+    pub fn parse_expression_statement(&mut self) -> Result<Stmt, PError> {
+        // parse an expression statement, which consists of an expression followed by a semicolon.
+        todo!()
     }
 }
 
@@ -241,3 +272,7 @@ mod test {
         )
     }
 }
+
+// I decided to throw operator precedence out of the window.....🕊️🕊️🕊️... It is a real pain...
+// Maybe I'll fix this in the future, but definitely not tomorrow....
+// # operator precedence has to die...

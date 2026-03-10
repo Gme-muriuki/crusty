@@ -3,6 +3,7 @@ use std::ops;
 use crate::ast::{
     AST, Expr,
     Operator::{self, *},
+    Stmt,
 };
 
 pub type Output = LoxValue;
@@ -94,6 +95,15 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
     })
 }
 
+pub fn execute_statements(statements: Vec<Stmt>) -> Result<(), EvError> {
+    // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
+    todo!()
+}
+
+pub fn execute_statement(statement: Stmt) -> Result<(), EvError> {
+    // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
+    todo!()
+}
 #[cfg(test)]
 mod test {
     use super::*;
