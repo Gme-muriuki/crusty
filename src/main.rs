@@ -13,6 +13,7 @@ use crate::{
 };
 
 pub mod ast;
+pub mod environ;
 pub mod evaluate;
 pub mod parser;
 pub mod reader;

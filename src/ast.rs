@@ -159,10 +159,7 @@ impl Stmt {
     }
 
     pub fn var(name: impl Into<String>, initializer: Expr) -> Stmt {
-        Stmt::SVar {
-            name: name.into(),
-            initializer,
-        }
+      Stmt::SVar { name: name.into(), initializer }
     }
 }
 
