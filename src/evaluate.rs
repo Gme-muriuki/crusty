@@ -125,6 +125,7 @@ pub fn execute_statement(statement: &Stmt) -> Result<(), EvError> {
         Stmt::SExpression { expression } => {
             evaluate_expression(expression);
         }
+        Stmt::SVar { name, initializer } => todo!(),
     }
 
     Ok(()) // statements do not produce values.

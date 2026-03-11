@@ -145,6 +145,7 @@ pub fn fmt_expr(e: Expr) -> String {
 pub enum Stmt {
     SPrint { expression: Expr },
     SExpression { expression: Expr },
+    SVar { name: String, initializer: Expr },
 }
 
 // constructors for statements
@@ -155,6 +156,13 @@ impl Stmt {
 
     pub fn expression(expression: Expr) -> Stmt {
         Stmt::SExpression { expression }
+    }
+
+    pub fn var(name: impl Into<String>, initializer: Expr) -> Stmt {
+        Stmt::SVar {
+            name: name.into(),
+            initializer,
+        }
     }
 }
 
