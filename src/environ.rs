@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 #[derive(Debug)]
-struct Environment<V> {
-    vars: HashMap<String, V>,
+pub struct Environment<V> {
+    pub vars: HashMap<String, V>,
 }
 
 impl<V> Environment<V> {
@@ -17,9 +17,12 @@ impl<V> Environment<V> {
         todo!()
     }
 
-    pub fn lookup(&self, name: &str) {
-        // Lookup of a variable... ()
-        todo!()
+    pub fn lookup(&self, name: &str) -> Option<&V> {
+        if self.vars.contains_key(name) {
+            return self.vars.get(name);
+        } else {
+            return None;
+        }
     }
 
     pub fn assign(&self, value: V, name: &str) {

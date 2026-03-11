@@ -1,12 +1,17 @@
 use std::{fmt::Display, ops};
 
-use crate::ast::{
-    AST, Expr,
-    Operator::{self, *},
-    Stmt,
+use crate::{
+    ast::{
+        AST, Expr,
+        Operator::{self, *},
+        Stmt,
+    },
+    environ::Environment,
 };
 
 pub type Output = LoxValue;
+
+pub type Env = Environment<LoxValue>;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum LoxValue {
@@ -45,19 +50,20 @@ impl LoxValue {
 
 pub fn evaluate(ast: AST) -> Result<(), EvError> {
     println!("Evaluating....");
-    execute_statements(ast.top)?;
+    let environ = Environment::new();
+    execute_statements(ast.top, environ)?;
     Ok(())
 }
 
-pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
+pub fn evaluate_expression(expr: &Expr, environ: &Env) -> Result<Output, EvError> {
     Ok(match expr {
         Expr::EBinary {
             left,
             operator,
             right,
         } => {
-            let left = evaluate_expression(&left)?;
-            let right = evaluate_expression(&right)?;
+            let left = evaluate_expression(&left, environ)?;
+            let right = evaluate_expression(&right, environ)?;
 
             match (&left, operator, &right) {
                 // Numeric ops
@@ -90,40 +96,40 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
                 _ => return Err(EvError::UnsupportedBinOps(left, operator.clone(), right)),
             }
         }
-        Expr::EGrouping { expression } => evaluate_expression(&expression)?,
-        // My AST contains numbers as strings.
+        Expr::EGrouping { expression } => evaluate_expression(&expression, environ)?,
         Expr::ENum { value } => Output::LNumber(value.parse().unwrap()),
         Expr::EStr { value } => Output::LString(value.clone()),
         Expr::ENil => Output::LNill,
         Expr::EBool { value } => Output::LBoolean(*value),
         Expr::EUnary { operator, right } => {
-            let rv = evaluate_expression(&right)?;
+            let rv = evaluate_expression(&right, environ)?;
             match (operator, &rv) {
                 (OSub, LoxValue::LNumber(right)) => LoxValue::LNumber(-right),
                 (ONot, right) => LoxValue::LBoolean(!right.is_truthy()),
                 _ => return Err(EvError::UnsupportedUnaryOps(operator.clone(), rv)),
             }
         }
+        Expr::EVarDecl { name } => todo!(),
     })
 }
 
-pub fn execute_statements(statements: Vec<Stmt>) -> Result<(), EvError> {
+pub fn execute_statements(statements: Vec<Stmt>, environ: Env) -> Result<(), EvError> {
     // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
     for stmt in statements.iter() {
-        execute_statement(stmt)?
+        execute_statement(stmt, &environ)?
     }
     Ok(())
 }
 
-pub fn execute_statement(statement: &Stmt) -> Result<(), EvError> {
+pub fn execute_statement(statement: &Stmt, environ: &Env) -> Result<(), EvError> {
     // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
     match statement {
         Stmt::SPrint { expression } => {
-            let value = evaluate_expression(expression)?;
+            let value = evaluate_expression(expression, environ)?;
             println!("{}", value);
         }
         Stmt::SExpression { expression } => {
-            evaluate_expression(expression);
+            evaluate_expression(expression, environ);
         }
         Stmt::SVar { name, initializer } => todo!(),
     }

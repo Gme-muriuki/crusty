@@ -68,6 +68,9 @@ pub enum Expr {
         operator: Operator,
         right: Box<Expr>,
     },
+    EVarDecl {
+        name: String,
+    },
 }
 
 impl Expr {
@@ -105,6 +108,9 @@ impl Expr {
             expression: expression.into(),
         }
     }
+    pub fn variable(name: impl Into<String>) -> Expr {
+        Expr::EVarDecl { name: name.into() }
+    }
 }
 
 pub fn fmt_expr(e: Expr) -> String {
@@ -137,6 +143,7 @@ pub fn fmt_expr(e: Expr) -> String {
         Expr::EBool { value } => {
             format!("{:?}", value)
         }
+        Expr::EVarDecl { name } => format!("{name}"),
     }
 }
 
@@ -159,7 +166,10 @@ impl Stmt {
     }
 
     pub fn var(name: impl Into<String>, initializer: Expr) -> Stmt {
-      Stmt::SVar { name: name.into(), initializer }
+        Stmt::SVar {
+            name: name.into(),
+            initializer,
+        }
     }
 }
 
