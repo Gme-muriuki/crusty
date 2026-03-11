@@ -1,4 +1,4 @@
-use std::ops;
+use std::{fmt::Display, ops};
 
 use crate::ast::{
     AST, Expr,
@@ -14,6 +14,17 @@ pub enum LoxValue {
     LBoolean(bool),
     LNumber(f64),
     LString(String),
+}
+
+impl Display for LoxValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LoxValue::LNill => f.write_str("nil"),
+            LoxValue::LBoolean(value) => f.write_str(&format!("{value}")),
+            LoxValue::LNumber(value) => f.write_str(&format!("{value}")),
+            LoxValue::LString(value) => f.write_str(value),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -32,9 +43,10 @@ impl LoxValue {
     }
 }
 
-pub fn evaluate(ast: AST) -> Result<Output, EvError> {
+pub fn evaluate(ast: AST) -> Result<(), EvError> {
     println!("Evaluating....");
-    evaluate_expression(&ast.top)
+    execute_statements(ast.top)?;
+    Ok(())
 }
 
 pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
@@ -97,12 +109,25 @@ pub fn evaluate_expression(expr: &Expr) -> Result<Output, EvError> {
 
 pub fn execute_statements(statements: Vec<Stmt>) -> Result<(), EvError> {
     // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
-    todo!()
+    for stmt in statements.iter() {
+        execute_statement(stmt)?
+    }
+    Ok(())
 }
 
-pub fn execute_statement(statement: Stmt) -> Result<(), EvError> {
+pub fn execute_statement(statement: &Stmt) -> Result<(), EvError> {
     // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
-    todo!()
+    match statement {
+        Stmt::SPrint { expression } => {
+            let value = evaluate_expression(expression)?;
+            println!("{}", value);
+        }
+        Stmt::SExpression { expression } => {
+            evaluate_expression(expression);
+        }
+    }
+
+    Ok(()) // statements do not produce values.
 }
 #[cfg(test)]
 mod test {

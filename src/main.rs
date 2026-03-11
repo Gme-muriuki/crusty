@@ -50,13 +50,40 @@ impl From<evaluate::EvError> for IError {
     }
 }
 
+fn report_error(error: IError) {
+    match error {
+        IError::Reader(rerror) => {
+            eprintln!("Failed to read file: {:#?}", rerror);
+        }
+        IError::Tokenizer(terror) => {
+            eprintln!("Failed to tokenize: {:#?}", terror);
+        }
+        IError::Parser(perror) => match perror {
+            parser::PError::SyntaxError { line, msg } => {
+                eprintln!("Line: {line} Unexpected character {msg}")
+            }
+            parser::PError::UnterminatedCharacter { line } => {
+                eprintln!("Line: {line}: Unterminated string");
+            }
+        },
+        IError::Evaluator(ev_error) => match ev_error {
+            evaluate::EvError::ZeroDivision => eprintln!("Division by zero"),
+            evaluate::EvError::UnsupportedBinOps(left, operator, right) => {
+                eprintln!("Unsupported operation: {left:?} {operator:?} {right:?}")
+            }
+            evaluate::EvError::UnsupportedUnaryOps(operator, left) => {
+                eprintln!("Unsupported operation: {operator:?} {left:?}")
+            }
+        },
+    }
+}
+
 fn run(source: Source) -> Result<(), IError> {
     let tokens = tokenize(source)?;
     print!("Tokens: {:#?}", tokens);
     let ast = parse(tokens)?;
     println!("AST: {:#?}", ast);
-    let eval = evaluate(ast)?;
-    println!("Eval: {:#?}", eval);
+    evaluate(ast)?;
     Ok(())
 }
 
@@ -96,7 +123,7 @@ fn main() {
     } else if args.len() == 2 {
         match run_file(&args[1]) {
             Ok(_) => println!("Success!! It worked"),
-            Err(err) => eprintln!("Error: {:#?}", err),
+            Err(err) => report_error(err),
         }
     } else {
         eprintln!("Usage: lox [filename]")
