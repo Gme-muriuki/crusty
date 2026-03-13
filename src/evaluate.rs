@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops};
+use std::{collections::btree_map::Values, fmt::Display, ops};
 
 use crate::{
     ast::{
@@ -50,8 +50,8 @@ impl LoxValue {
 
 pub fn evaluate(ast: AST) -> Result<(), EvError> {
     println!("Evaluating....");
-    let environ = Environment::new();
-    execute_statements(ast.top, environ)?;
+    let mut environ = Environment::new();
+    execute_statements(ast.top, &mut environ)?;
     Ok(())
 }
 
@@ -109,19 +109,19 @@ pub fn evaluate_expression(expr: &Expr, environ: &Env) -> Result<Output, EvError
                 _ => return Err(EvError::UnsupportedUnaryOps(operator.clone(), rv)),
             }
         }
-        Expr::EVarDecl { name } => todo!(),
+        Expr::EVarDecl { name } => environ.lookup(name).unwrap().clone(),
     })
 }
 
-pub fn execute_statements(statements: Vec<Stmt>, environ: Env) -> Result<(), EvError> {
+pub fn execute_statements(statements: Vec<Stmt>, environ: &mut Env) -> Result<(), EvError> {
     // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
     for stmt in statements.iter() {
-        execute_statement(stmt, &environ)?
+        execute_statement(stmt, environ)?
     }
     Ok(())
 }
 
-pub fn execute_statement(statement: &Stmt, environ: &Env) -> Result<(), EvError> {
+pub fn execute_statement(statement: &Stmt, environ: &mut Env) -> Result<(), EvError> {
     // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
     match statement {
         Stmt::SPrint { expression } => {
@@ -131,7 +131,14 @@ pub fn execute_statement(statement: &Stmt, environ: &Env) -> Result<(), EvError>
         Stmt::SExpression { expression } => {
             evaluate_expression(expression, environ);
         }
-        Stmt::SVar { name, initializer } => todo!(),
+        Stmt::SVar { name, initializer } => {
+            let value = match initializer {
+                Some(value) => evaluate_expression(value, environ)?,
+                None => LoxValue::LNill,
+            };
+
+            environ.declare(name, value);
+        }
     }
 
     Ok(()) // statements do not produce values.

@@ -18,11 +18,7 @@ impl<V> Environment<V> {
     }
 
     pub fn lookup(&self, name: &str) -> Option<&V> {
-        if self.vars.contains_key(name) {
-            return self.vars.get(name);
-        } else {
-            return None;
-        }
+        self.vars.get(name)
     }
 
     pub fn assign(&mut self, value: V, name: &str) {
