@@ -150,9 +150,16 @@ pub fn fmt_expr(e: Expr) -> String {
 // Statements
 #[derive(Debug, PartialEq)]
 pub enum Stmt {
-    SPrint { expression: Expr },
-    SExpression { expression: Expr },
-    SVar { name: String, initializer: Expr },
+    SPrint {
+        expression: Expr,
+    },
+    SExpression {
+        expression: Expr,
+    },
+    SVar {
+        name: String,
+        initializer: Option<Expr>,
+    },
 }
 
 // constructors for statements
@@ -165,7 +172,7 @@ impl Stmt {
         Stmt::SExpression { expression }
     }
 
-    pub fn var(name: impl Into<String>, initializer: Expr) -> Stmt {
+    pub fn var(name: impl Into<String>, initializer: Option<Expr>) -> Stmt {
         Stmt::SVar {
             name: name.into(),
             initializer,

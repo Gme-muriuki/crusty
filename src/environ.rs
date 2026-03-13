@@ -14,7 +14,7 @@ impl<V> Environment<V> {
 
     pub fn declare(&mut self, name: &str, value: V) {
         // Declare new variable...(var name = value)
-        todo!()
+        self.vars.insert(name.to_string(), value);
     }
 
     pub fn lookup(&self, name: &str) -> Option<&V> {
@@ -25,8 +25,10 @@ impl<V> Environment<V> {
         }
     }
 
-    pub fn assign(&self, value: V, name: &str) {
+    pub fn assign(&mut self, value: V, name: &str) {
         // Change value of an already *existent* variable (name = value)
-        todo!()
+        if self.vars.contains_key(name) {
+            self.vars.insert(name.to_string(), value);
+        }
     }
 }

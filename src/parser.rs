@@ -102,6 +102,9 @@ impl Parser {
             Ok(Expr::bool(false))
         } else if self.accept(TokenType::Nil) {
             Ok(Expr::nil())
+        } else if self.accept(TokenType::Identifier) {
+            dbg!("What do we have here..", self.last_lexeme());
+            Ok(Expr::variable(self.last_lexeme()))
         } else {
             Err(self.syntax_error("Expected primary"))
         }
@@ -150,26 +153,47 @@ impl Parser {
         // parse zero or more statements until we reach the end of the file. Each statement can be a print statement, an expression statement, a variable declaration, etc.
         let mut statements = Vec::new();
         while !self.at_end() {
-            statements.push(self.parse_statement()?);
+            statements.push(self.parse_declaration()?);
         }
         Ok(statements)
     }
     pub fn parse_statement(&mut self) -> Result<Stmt, PError> {
         // parse a single statement, which can be a print statement, an expression statement, a variable declaration, etc.
         if self.accept(TokenType::Print) {
-            self.parse_print()
+            self.parse_print_statement()
         } else {
             self.parse_expression_statement()
         }
     }
 
-    pub fn parse_print(&mut self) -> Result<Stmt, PError> {
+    pub fn parse_declaration(&mut self) -> Result<Stmt, PError> {
+        if self.accept(TokenType::Var) {
+            self.parse_var_declaration()
+        } else {
+            self.parse_statement()
+        }
+    }
+    pub fn parse_print_statement(&mut self) -> Result<Stmt, PError> {
         // parse a print statement, which consists of the 'print' keyword followed by an expression and a semicolon.
         let value = self.parse_expr()?;
         self.consume(TokenType::SemiColon, "Expected ';' after value")?;
         Ok(Stmt::print(value))
     }
 
+    pub fn parse_var_declaration(&mut self) -> Result<Stmt, PError> {
+        self.consume(TokenType::Identifier, "Expected a variable name");
+        let name = self.last_lexeme().clone();
+
+        let mut initializer = None;
+        if self.accept(TokenType::Equal) {
+            initializer = Some(self.parse_expr()?);
+        }
+        self.consume(
+            TokenType::SemiColon,
+            "Expected ';' after the variable declaration",
+        );
+        Ok(Stmt::var(name, initializer))
+    }
     pub fn parse_expression_statement(&mut self) -> Result<Stmt, PError> {
         // parse an expression statement, which consists of an expression followed by a semicolon.
         let value = self.parse_expr()?;
