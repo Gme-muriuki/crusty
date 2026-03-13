@@ -18,7 +18,12 @@ impl<V> Environment<V> {
     }
 
     pub fn lookup(&self, name: &str) -> Option<&V> {
-        self.vars.get(name)
+        if self.vars.contains_key(name) {
+            self.vars.get(name)
+        } else {
+            //TODO... I think here I can do sth like: throw new RuntimeError(name,"Undefined variable '" + name.lexeme + "'.");
+            None
+        }
     }
 
     pub fn assign(&mut self, value: V, name: &str) {
@@ -26,5 +31,6 @@ impl<V> Environment<V> {
         if self.vars.contains_key(name) {
             self.vars.insert(name.to_string(), value);
         }
+        //TODO... Also here..  throw new RuntimeError(name,"Undefined variable '" + name.lexeme + "'.");
     }
 }

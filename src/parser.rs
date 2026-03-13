@@ -109,7 +109,6 @@ impl Parser {
         }
     }
     fn parse_expr(&mut self) -> Result<Expr, PError> {
-        println!("Parsing expression");
         let left = self.parse_unary()?;
         if self.accepts([
             TokenType::Plus,
@@ -202,7 +201,6 @@ impl Parser {
 }
 
 pub fn parse(tokens: Tokens) -> Result<AST, PError> {
-    println!("Parsing");
     Ok(Parser::new(tokens).parse_top()?)
 }
 

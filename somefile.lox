@@ -1,3 +1,8 @@
-print "one";
+var age = 23;
+var sex = "male";
+
+print age;
 print true;
 print 2 + 3;
+print sex;
+print age + 234;

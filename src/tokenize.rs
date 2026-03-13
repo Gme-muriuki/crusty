@@ -98,7 +98,6 @@ pub struct TError {
 }
 
 pub fn tokenize(source: Source) -> Result<Tokens, TError> {
-    println!("Tokenizing...");
     Scanner::new(&source.contents).scan_tokens()
 }
 
@@ -309,7 +308,6 @@ impl Scanner {
         }
         // Unterminated string
         if self.is_at_end() {
-            todo!("Unterminated string");
             return;
         }
         self.advance();

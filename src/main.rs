@@ -86,12 +86,8 @@ fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), 
     Ok(())
 }
 fn run(source: Source) -> Result<(), IError> {
-    let tokens = tokenize(source)?;
-    print!("Tokens: {:#?}", tokens);
-    let ast = parse(tokens)?;
-    println!("AST: {:#?}", ast);
-    evaluate(ast)?;
-    Ok(())
+    let mut interp = Interpreter::new();
+    run_interpreter(source, &mut interp)
 }
 
 fn run_file(filename: &str) -> Result<(), IError> {
