@@ -103,7 +103,6 @@ impl Parser {
         } else if self.accept(TokenType::Nil) {
             Ok(Expr::nil())
         } else if self.accept(TokenType::Identifier) {
-            dbg!("What do we have here..", self.last_lexeme());
             Ok(Expr::variable(self.last_lexeme()))
         } else {
             Err(self.syntax_error("Expected primary"))

@@ -6,7 +6,7 @@ use std::{
 };
 
 use crate::{
-    evaluate::evaluate,
+    evaluate::{Interpreter, evaluate},
     parser::parse,
     reader::{Source, read_source},
     tokenize::tokenize,
@@ -79,6 +79,12 @@ fn report_error(error: IError) {
     }
 }
 
+fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
+    let tokens = tokenize(source)?;
+    let ast = parse(tokens)?;
+    interpreter.evaluate(ast)?;
+    Ok(())
+}
 fn run(source: Source) -> Result<(), IError> {
     let tokens = tokenize(source)?;
     print!("Tokens: {:#?}", tokens);
@@ -96,7 +102,7 @@ fn run_file(filename: &str) -> Result<(), IError> {
 fn run_prompt() {
     let mut stdout = stdout();
     let mut stdin = stdin();
-
+    let mut interpreter = Interpreter::new();
     'lox: loop {
         stdout.write_all(b">").unwrap();
         stdout.flush().unwrap();
@@ -104,7 +110,7 @@ fn run_prompt() {
         stdin.read_line(&mut buffer).expect("Failed to read input");
         let source = reader::Source::new(buffer);
 
-        match run(source) {
+        match run_interpreter(source, &mut interpreter) {
             Ok(_) => println!("Hexa"),
             Err(e) => eprintln!("{:#?}", e),
         }

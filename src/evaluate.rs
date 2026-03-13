@@ -13,6 +13,24 @@ pub type Output = LoxValue;
 
 pub type Env = Environment<LoxValue>;
 
+#[derive(Debug)]
+pub struct Interpreter {
+    top_level: Env,
+}
+
+impl Interpreter {
+    pub fn new() -> Self {
+        Self {
+            top_level: Environment::new(),
+        }
+    }
+    pub fn evaluate(&mut self, ast: AST) -> Result<(), EvError> {
+        execute_statements(ast.top, &mut self.top_level);
+
+        Ok(())
+    }
+}
+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum LoxValue {
     LNill,
