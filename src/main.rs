@@ -9,7 +9,7 @@ use crate::{
     evaluate::{Interpreter, evaluate},
     parser::parse,
     reader::{Source, read_source},
-    tokenizer::tokenize,
+    tokenize::tokenize,
 };
 
 pub mod ast;
@@ -23,7 +23,7 @@ pub mod tokenizer;
 #[derive(Debug)]
 pub enum IError {
     Reader(reader::RError),
-    Tokenizer(tokenizer::TError),
+    Tokenizer(tokenize::TError),
     Parser(parser::PError),
     Evaluator(evaluate::EvError),
 }
@@ -34,8 +34,8 @@ impl From<reader::RError> for IError {
     }
 }
 
-impl From<tokenizer::TError> for IError {
-    fn from(error: tokenizer::TError) -> Self {
+impl From<tokenize::TError> for IError {
+    fn from(error: tokenize::TError) -> Self {
         IError::Tokenizer(error)
     }
 }
@@ -80,19 +80,19 @@ fn report_error(error: IError) {
     }
 }
 
-fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
-    let tokens = tokenize(source)?;
-    println!("Tokens: {:#?}", tokens);
-    // let ast = parse(tokens)?;
-    // interpreter.evaluate(ast)?;
-    Ok(())
-}
 // fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
 //     let tokens = tokenize(source)?;
-//     let ast = parse(tokens)?;
-//     interpreter.evaluate(ast)?;
+//     println!("Tokens: {:#?}", tokens);
+//     // let ast = parse(tokens)?;
+//    // interpreter.evaluate(ast)?;
 //     Ok(())
 // }
+fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
+    let tokens = tokenize(source)?;
+    let ast = parse(tokens)?;
+    interpreter.evaluate(ast)?;
+    Ok(())
+}
 fn run(source: Source) -> Result<(), IError> {
     let mut interp = Interpreter::new();
     run_interpreter(source, &mut interp)
