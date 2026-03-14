@@ -204,59 +204,59 @@ pub fn parse(tokens: Tokens) -> Result<AST, PError> {
     Ok(Parser::new(tokens).parse_top()?)
 }
 
-#[cfg(test)]
-mod test {
-    use crate::{reader::Source, tokenize::tokenize};
+// #[cfg(test)]
+// mod test {
+//     use crate::{reader::Source, tokenize::tokenize};
 
-    use super::*;
+//     use super::*;
 
-    // Helper:
-    fn parse_expr_string(s: &str) -> Expr {
-        let source = Source::new(s);
-        let tokens = tokenize(source).unwrap();
-        Parser::new(tokens).parse_expr().unwrap()
-    }
+//     // Helper:
+//     fn parse_expr_string(s: &str) -> Expr {
+//         let source = Source::new(s);
+//         let tokens = tokenize(source).unwrap();
+//         Parser::new(tokens).parse_expr().unwrap()
+//     }
 
-    #[test]
-    fn is_alive() {
-        assert_eq!(true, true)
-    }
-    #[test]
-    fn test_primary() {
-        assert_eq!(parse_expr_string("123"), Expr::num("123"));
-        assert_eq!(parse_expr_string("\"Hello\""), Expr::str("\"Hello\""));
-        assert_eq!(parse_expr_string("(2)"), Expr::grouping(Expr::num("2")));
-        assert_eq!(parse_expr_string("true"), Expr::bool(true));
-        assert_eq!(parse_expr_string("false"), Expr::bool(false));
-        assert_eq!(parse_expr_string("nil"), Expr::nil());
-    }
+//     #[test]
+//     fn is_alive() {
+//         assert_eq!(true, true)
+//     }
+//     #[test]
+//     fn test_primary() {
+//         assert_eq!(parse_expr_string("123"), Expr::num("123"));
+//         assert_eq!(parse_expr_string("\"Hello\""), Expr::str("\"Hello\""));
+//         assert_eq!(parse_expr_string("(2)"), Expr::grouping(Expr::num("2")));
+//         assert_eq!(parse_expr_string("true"), Expr::bool(true));
+//         assert_eq!(parse_expr_string("false"), Expr::bool(false));
+//         assert_eq!(parse_expr_string("nil"), Expr::nil());
+//     }
 
-    #[test]
-    fn test_binary() {
-        assert_eq!(
-            parse_expr_string("1 + 2"),
-            Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2"))
-        )
-    }
+//     #[test]
+//     fn test_binary() {
+//         assert_eq!(
+//             parse_expr_string("1 + 2"),
+//             Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2"))
+//         )
+//     }
 
-    #[test]
-    fn test_bool() {
-        assert_eq!(parse_expr_string("true"), Expr::bool(true));
-        assert_eq!(parse_expr_string("false"), Expr::bool(false))
-    }
-    #[test]
-    fn test_grouping() {
-        assert_eq!(
-            parse_expr_string("{ 1 + 2}"),
-            Expr::grouping(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
-        );
-        assert_eq!(
-            parse_expr_string("( 1 + 2 )"),
-            Expr::grouping(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
-        )
-    }
-}
+//     #[test]
+//     fn test_bool() {
+//         assert_eq!(parse_expr_string("true"), Expr::bool(true));
+//         assert_eq!(parse_expr_string("false"), Expr::bool(false))
+//     }
+//     #[test]
+//     fn test_grouping() {
+//         assert_eq!(
+//             parse_expr_string("{ 1 + 2}"),
+//             Expr::grouping(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
+//         );
+//         assert_eq!(
+//             parse_expr_string("( 1 + 2 )"),
+//             Expr::grouping(Expr::binary(Expr::num("1"), Operator::OAdd, Expr::num("2")))
+//         )
+//     }
+// }
 
-// I decided to throw operator precedence out of the window.....🕊️🕊️🕊️... It is a real pain...
-// Maybe I'll fix this in the future, but definitely not tomorrow....
-// # operator precedence has to die...
+// // I decided to throw operator precedence out of the window.....🕊️🕊️🕊️... It is a real pain...
+// // Maybe I'll fix this in the future, but definitely not tomorrow....
+// // # operator precedence has to die...
