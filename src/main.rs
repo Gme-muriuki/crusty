@@ -6,6 +6,7 @@ use std::{
 };
 
 use crate::{
+    error::{InterpreterError, report_error},
     evaluate::{Interpreter, evaluate},
     parser::parse,
     reader::{Source, read_source},
@@ -14,71 +15,12 @@ use crate::{
 
 pub mod ast;
 pub mod environ;
+pub mod error;
 pub mod evaluate;
 pub mod parser;
 pub mod reader;
 pub mod tokenize;
 pub mod tokenizer;
-
-#[derive(Debug)]
-pub enum IError {
-    Reader(reader::ReadError),
-    Tokenizer(tokenize::TokenizeError),
-    Parser(parser::ParseError),
-    Evaluator(evaluate::EvError),
-}
-
-impl From<reader::ReadError> for IError {
-    fn from(error: reader::ReadError) -> Self {
-        IError::Reader(error)
-    }
-}
-
-impl From<tokenize::TokenizeError> for IError {
-    fn from(error: tokenize::TokenizeError) -> Self {
-        IError::Tokenizer(error)
-    }
-}
-
-impl From<parser::ParseError> for IError {
-    fn from(error: parser::ParseError) -> Self {
-        IError::Parser(error)
-    }
-}
-
-impl From<evaluate::EvError> for IError {
-    fn from(error: evaluate::EvError) -> Self {
-        IError::Evaluator(error)
-    }
-}
-
-fn report_error(error: IError) {
-    match error {
-        IError::Reader(rerror) => {
-            eprintln!("Failed to read file: {:#?}", rerror);
-        }
-        IError::Tokenizer(terror) => {
-            eprintln!("Failed to tokenize: {:#?}", terror);
-        }
-        IError::Parser(perror) => match perror {
-            parser::ParseError::SyntaxError { line, msg } => {
-                eprintln!("Line: {line} Unexpected character {msg}")
-            }
-            parser::ParseError::UnterminatedCharacter { line } => {
-                eprintln!("Line: {line}: Unterminated string");
-            }
-        },
-        IError::Evaluator(ev_error) => match ev_error {
-            evaluate::EvError::ZeroDivision => eprintln!("Division by zero"),
-            evaluate::EvError::UnsupportedBinOps(left, operator, right) => {
-                eprintln!("Unsupported operation: {left:?} {operator:?} {right:?}")
-            }
-            evaluate::EvError::UnsupportedUnaryOps(operator, left) => {
-                eprintln!("Unsupported operation: {operator:?} {left:?}")
-            }
-        },
-    }
-}
 
 // fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
 //     let tokens = tokenize(source)?;
@@ -87,18 +29,19 @@ fn report_error(error: IError) {
 //    // interpreter.evaluate(ast)?;
 //     Ok(())
 // }
-fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
+
+fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), InterpreterError> {
     let tokens = tokenize(source)?;
     let ast = parse(tokens)?;
     interpreter.evaluate(ast)?;
     Ok(())
 }
-fn run(source: Source) -> Result<(), IError> {
+fn run(source: Source) -> Result<(), InterpreterError> {
     let mut interp = Interpreter::new();
     run_interpreter(source, &mut interp)
 }
 
-fn run_file(filename: &str) -> Result<(), IError> {
+fn run_file(filename: &str) -> Result<(), InterpreterError> {
     let source = reader::read_source(filename)?;
     run(source)
 }

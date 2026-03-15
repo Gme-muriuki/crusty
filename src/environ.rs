@@ -20,7 +20,15 @@ impl<V: Clone> Environment<V> {
     }
 
     pub fn lookup(&self, name: &str) -> Option<V> {
-        Some(self.vars.borrow().get(name)?.clone())
+        // Lookup value of a variable might not exist.
+        // TODO... Must check parent.
+        if let Some(value) = self.vars.borrow().get(name) {
+            Some(value.clone())
+        } else if let Some(ref parent) = self.parent {
+            parent.lookup(name)
+        } else {
+            None
+        }
     }
 
     pub fn assign(&self, value: V, name: &str) {
