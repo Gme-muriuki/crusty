@@ -22,14 +22,16 @@ pub mod reader;
 pub mod tokenize;
 pub mod tokenizer;
 
-// fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), IError> {
-//     let tokens = tokenize(source)?;
+// Tokenizer alternative impl
+// fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), InterpreterError> {
+//     let tokens = tokenize(source).unwrap();
 //     println!("Tokens: {:#?}", tokens);
 //     // let ast = parse(tokens)?;
-//    // interpreter.evaluate(ast)?;
+//     // interpreter.evaluate(ast)?;
 //     Ok(())
 // }
 
+// Tokenizer main impl
 fn run_interpreter(source: Source, interpreter: &mut Interpreter) -> Result<(), InterpreterError> {
     let tokens = tokenize(source)?;
     let ast = parse(tokens)?;
@@ -59,7 +61,12 @@ fn run_prompt() {
 
         match run_interpreter(source, &mut interpreter) {
             Ok(_) => println!("Program run successfully"),
-            Err(e) => eprintln!("{:#?}", e),
+            Err(e) => {
+                eprintln!(
+                    "I'm sorry you encountered that... (fork and create a PR to fix it...) ..."
+                );
+                eprintln!("{:#?}", e)
+            }
         }
     }
 }

@@ -23,3 +23,14 @@ var a = 1;
   var a = a + 2;
   print a;
 }
+
+while (a < 10) {
+  print "My code is working";
+  print "I am a great rustacean";
+
+  a = a + 1;
+}
+
+if (a == 10) {
+  print "Gat you kid!!!";
+}

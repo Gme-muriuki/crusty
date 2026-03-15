@@ -74,6 +74,8 @@ pub enum ScanError {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     pub toktype: TokenType,
+    // I could or maybe should change this so that I don't copy the lexeme but use it as a part of the source.
+    // It is doable, although I'll dig big holes for myself, and spend some significant amount of time on it, and I need to also translate the "Building programming Language interpreter C++ code into Rust".
     pub lexeme: String,
     pub line: usize,
 }
@@ -102,14 +104,41 @@ pub fn accepts(
     Some((toktype, start..n + 1))
 }
 
+pub fn map_keywords(lexeme: &str) -> TokenType {
+    match lexeme {
+        "and" => TAnd,
+        "class" => TClass,
+        "if" => TIf,
+        "else" => TElse,
+        "false" => TFalse,
+        "for" => TFor,
+        "fun" => TFun,
+        "nil" => TNil,
+        "or" => TOr,
+        "print" => TPrint,
+        "true" => TTrue,
+        "return" => TReturn,
+        "super" => TSuper,
+        "this" => TThis,
+        "var" => TVar,
+        "while" => TWhile,
+        _ => TIdentifier,
+    }
+}
+
 pub fn scan_tokens(lexeme: String) -> Result<Tokens, TError> {
     let mut chars = lexeme.char_indices().peekable();
     let mut result = Vec::new();
     let mut line = 1;
-    while let Some((toktype, range)) = scan_token(&mut chars) {
-        if toktype != TIgnore {
-            result.push(Token::new(toktype, &lexeme[range], line));
+    while let Some((mut toktype, range)) = scan_token(&mut chars) {
+        if toktype == TIgnore {
+            continue;
         }
+        let lex = &lexeme[range];
+        if toktype == TIdentifier {
+            toktype = map_keywords(&lexeme);
+        }
+        result.push(Token::new(toktype, lex, line));
     }
     result.push(Token::new(TEof, "", line));
     Ok(Tokens { tokens: result })
@@ -174,6 +203,21 @@ fn scan_compare_symbols(chars: &mut Chars) -> Option<(TokenType, Range<usize>)> 
                 accepts(chars, TBangEqual, start)
             } else {
                 Some((TBang, start..start + 1))
+            }
+        }
+        '/' => {
+            _ = chars.next();
+            if peek(chars, '/') {
+                let mut end = start;
+                while let Some(&(idx, char)) = chars.peek() {
+                    end = idx;
+                    if ch == '\n' {
+                        break;
+                    }
+                }
+                Some((TIgnore, start..end))
+            } else {
+                Some((TSlash, start..start + 1))
             }
         }
         _ => None,
@@ -287,7 +331,7 @@ mod test {
 
     #[test]
     fn test_single_character() {
-        let mut tokens = scan_tokens("(){},.+-;*".to_string()).unwrap();
+        let mut tokens = scan_tokens("(){},.+-;*/".to_string()).unwrap();
 
         assert_eq!(
             tokens.tokens,
@@ -302,6 +346,7 @@ mod test {
                 Token::new(TMinus, "-", 1),
                 Token::new(TSemiColon, ";", 1),
                 Token::new(TStar, "*", 1),
+                Token::new(TSlash, "/", 1),
                 Token::new(TEof, "", 1),
             ]
         )

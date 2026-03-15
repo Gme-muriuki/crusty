@@ -9,7 +9,7 @@ use crate::{
     evaluate::{self, Interpreter, evaluate},
     parser::{self, parse},
     reader::{self, Source, read_source},
-    tokenize::{self, tokenize},
+    tokenize::{self, TokenizeError, tokenize},
 };
 
 #[derive(Debug)]
