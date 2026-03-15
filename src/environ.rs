@@ -41,7 +41,7 @@ impl<V: Clone> Environment<V> {
             self.vars.borrow_mut().insert(name.into(), value.clone());
             Some(value)
         } else if let Some(ref parent) = self.parent {
-            self.assign(value, name)
+            parent.assign(value, name)
         } else {
             None
         }
