@@ -1,4 +1,4 @@
-use std::{collections::btree_map::Values, fmt::Display, ops};
+use std::{collections::btree_map::Values, fmt::Display, ops, rc::Rc};
 
 use crate::{
     ast::{
@@ -13,19 +13,19 @@ pub type Output = LoxValue;
 
 pub type Env = Environment<LoxValue>;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Interpreter {
-    top_level: Env,
+    top_level: Rc<Env>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Self {
-            top_level: Environment::new(),
+            top_level: Environment::new(None),
         }
     }
     pub fn evaluate(&mut self, ast: AST) -> Result<(), EvError> {
-        execute_statements(ast.top, &mut self.top_level);
+        execute_statements(ast.top, self.top_level.clone());
 
         Ok(())
     }
@@ -68,20 +68,20 @@ impl LoxValue {
 
 pub fn evaluate(ast: AST) -> Result<(), EvError> {
     println!("Evaluating....");
-    let mut environ = Environment::new();
-    execute_statements(ast.top, &mut environ)?;
+    let mut environ = Environment::new(None);
+    execute_statements(ast.top, environ)?;
     Ok(())
 }
 
-pub fn evaluate_expression(expr: &Expr, environ: &Env) -> Result<Output, EvError> {
+pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, EvError> {
     Ok(match expr {
         Expr::EBinary {
             left,
             operator,
             right,
         } => {
-            let left = evaluate_expression(&left, environ)?;
-            let right = evaluate_expression(&right, environ)?;
+            let left = evaluate_expression(&left, environ.clone())?;
+            let right = evaluate_expression(&right, environ.clone())?;
 
             match (&left, operator, &right) {
                 // Numeric ops
@@ -128,18 +128,24 @@ pub fn evaluate_expression(expr: &Expr, environ: &Env) -> Result<Output, EvError
             }
         }
         Expr::EVarDecl { name } => environ.lookup(name).unwrap().clone(),
+        Expr::EAssign { name, value } => {
+            let value = evaluate_expression(&*value, environ.clone())?;
+            environ.assign(value.clone(), name);
+
+            value
+        }
     })
 }
 
-pub fn execute_statements(statements: Vec<Stmt>, environ: &mut Env) -> Result<(), EvError> {
+pub fn execute_statements(statements: Vec<Stmt>, environ: Rc<Env>) -> Result<(), EvError> {
     // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
     for stmt in statements.iter() {
-        execute_statement(stmt, environ)?
+        execute_statement(stmt, environ.clone())?
     }
     Ok(())
 }
 
-pub fn execute_statement(statement: &Stmt, environ: &mut Env) -> Result<(), EvError> {
+pub fn execute_statement(statement: &Stmt, environ: Rc<Env>) -> Result<(), EvError> {
     // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
     match statement {
         Stmt::SPrint { expression } => {
@@ -151,7 +157,7 @@ pub fn execute_statement(statement: &Stmt, environ: &mut Env) -> Result<(), EvEr
         }
         Stmt::SVar { name, initializer } => {
             let value = match initializer {
-                Some(value) => evaluate_expression(value, environ)?,
+                Some(value) => evaluate_expression(value, environ.clone())?,
                 None => LoxValue::LNill,
             };
 

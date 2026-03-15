@@ -1,36 +1,31 @@
-use std::collections::HashMap;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Environment<V> {
-    pub vars: HashMap<String, V>,
+    pub parent: Option<Rc<Environment<V>>>,
+    pub vars: RefCell<HashMap<String, V>>,
 }
 
-impl<V> Environment<V> {
-    pub fn new() -> Self {
-        Self {
-            vars: HashMap::new(),
-        }
+impl<V: Clone> Environment<V> {
+    pub fn new(parent: Option<Rc<Environment<V>>>) -> Rc<Self> {
+        Rc::new(Self {
+            parent,
+            vars: RefCell::new(HashMap::new()),
+        })
     }
 
-    pub fn declare(&mut self, name: &str, value: V) {
+    pub fn declare(&self, name: &str, value: V) -> Option<V> {
         // Declare new variable...(var name = value)
-        self.vars.insert(name.to_string(), value);
+        self.vars.borrow_mut().insert(name.to_string(), value)
     }
 
-    pub fn lookup(&self, name: &str) -> Option<&V> {
-        if self.vars.contains_key(name) {
-            self.vars.get(name)
-        } else {
-            //TODO... I think here I can do sth like: throw new RuntimeError(name,"Undefined variable '" + name.lexeme + "'.");
-            None
-        }
+    pub fn lookup(&self, name: &str) -> Option<V> {
+        Some(self.vars.borrow().get(name)?.clone())
     }
 
-    pub fn assign(&mut self, value: V, name: &str) {
-        // Change value of an already *existent* variable (name = value)
-        if self.vars.contains_key(name) {
-            self.vars.insert(name.to_string(), value);
+    pub fn assign(&self, value: V, name: &str) {
+        if self.vars.borrow_mut().contains_key(name) {
+            self.vars.borrow_mut().insert(name.into(), value);
         }
-        //TODO... Also here..  throw new RuntimeError(name,"Undefined variable '" + name.lexeme + "'.");
     }
 }

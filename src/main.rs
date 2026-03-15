@@ -22,26 +22,26 @@ pub mod tokenizer;
 
 #[derive(Debug)]
 pub enum IError {
-    Reader(reader::RError),
-    Tokenizer(tokenize::TError),
-    Parser(parser::PError),
+    Reader(reader::ReadError),
+    Tokenizer(tokenize::TokenizeError),
+    Parser(parser::ParseError),
     Evaluator(evaluate::EvError),
 }
 
-impl From<reader::RError> for IError {
-    fn from(error: reader::RError) -> Self {
+impl From<reader::ReadError> for IError {
+    fn from(error: reader::ReadError) -> Self {
         IError::Reader(error)
     }
 }
 
-impl From<tokenize::TError> for IError {
-    fn from(error: tokenize::TError) -> Self {
+impl From<tokenize::TokenizeError> for IError {
+    fn from(error: tokenize::TokenizeError) -> Self {
         IError::Tokenizer(error)
     }
 }
 
-impl From<parser::PError> for IError {
-    fn from(error: parser::PError) -> Self {
+impl From<parser::ParseError> for IError {
+    fn from(error: parser::ParseError) -> Self {
         IError::Parser(error)
     }
 }
@@ -61,10 +61,10 @@ fn report_error(error: IError) {
             eprintln!("Failed to tokenize: {:#?}", terror);
         }
         IError::Parser(perror) => match perror {
-            parser::PError::SyntaxError { line, msg } => {
+            parser::ParseError::SyntaxError { line, msg } => {
                 eprintln!("Line: {line} Unexpected character {msg}")
             }
-            parser::PError::UnterminatedCharacter { line } => {
+            parser::ParseError::UnterminatedCharacter { line } => {
                 eprintln!("Line: {line}: Unterminated string");
             }
         },

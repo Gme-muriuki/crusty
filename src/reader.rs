@@ -17,23 +17,23 @@ impl Source {
 }
 
 #[derive(Debug)]
-pub struct RError {
+pub struct ReadError {
     msg: String,
 }
 
-impl From<io::Error> for RError {
+impl From<io::Error> for ReadError {
     fn from(error: io::Error) -> Self {
-        RError {
+        ReadError {
             msg: format!("{:?}", error),
         }
     }
 }
 
-pub fn read_source(filename: &str) -> Result<Source, RError> {
+pub fn read_source(filename: &str) -> Result<Source, ReadError> {
     println!("Reading source");
     let mut file = match File::open(filename) {
         Ok(file) => file,
-        Err(e) => return Err(RError::from(e)),
+        Err(e) => return Err(ReadError::from(e)),
     };
 
     let mut contents = String::new();

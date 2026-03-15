@@ -71,6 +71,10 @@ pub enum Expr {
     EVarDecl {
         name: String,
     },
+    EAssign {
+        name: String,
+        value: Box<Expr>,
+    },
 }
 
 impl Expr {
@@ -111,6 +115,13 @@ impl Expr {
     pub fn variable(name: impl Into<String>) -> Expr {
         Expr::EVarDecl { name: name.into() }
     }
+
+    pub fn assign(name: impl Into<String>, value: Expr) -> Expr {
+        Expr::EAssign {
+            name: name.into(),
+            value: value.into(),
+        }
+    }
 }
 
 pub fn fmt_expr(e: Expr) -> String {
@@ -144,6 +155,7 @@ pub fn fmt_expr(e: Expr) -> String {
             format!("{:?}", value)
         }
         Expr::EVarDecl { name } => format!("{name}"),
+        Expr::EAssign { name, value } => format!("assign {} {}", name, fmt_expr(*value)),
     }
 }
 

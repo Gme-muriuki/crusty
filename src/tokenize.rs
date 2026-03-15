@@ -93,11 +93,11 @@ pub struct Tokens {
 }
 
 #[derive(Debug)]
-pub struct TError {
+pub struct TokenizeError {
     error: Vec<ScanError>,
 }
 
-pub fn tokenize(source: Source) -> Result<Tokens, TError> {
+pub fn tokenize(source: Source) -> Result<Tokens, TokenizeError> {
     Scanner::new(&source.contents).scan_tokens()
 }
 
@@ -151,7 +151,7 @@ impl Scanner {
         true
     }
 
-    pub fn scan_tokens(mut self) -> Result<Tokens, TError> {
+    pub fn scan_tokens(mut self) -> Result<Tokens, TokenizeError> {
         while !self.is_at_end() {
             self.start = self.current;
             self.scan_token();
@@ -165,7 +165,7 @@ impl Scanner {
                 tokens: self.tokens,
             })
         } else {
-            Err(TError { error: self.error })
+            Err(TokenizeError { error: self.error })
         }
     }
     pub fn scan_token(&mut self) {
