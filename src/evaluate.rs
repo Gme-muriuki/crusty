@@ -189,6 +189,25 @@ pub fn execute_statement(statement: &Statements, environ: Rc<Env>) -> Result<(),
             let new_env = Environment::new(Some(environ));
             execute_statements(statements.clone(), new_env);
         }
+        Statements::SWhile {
+            condition,
+            consequence,
+        } => {
+            while evaluate_expression(condition, environ.clone())?.is_truthy() {
+                execute_statement(consequence, environ.clone())?;
+            }
+        }
+        Statements::SIf {
+            condition,
+            consequence,
+            alternative,
+        } => {
+            if evaluate_expression(condition, environ.clone())?.is_truthy() {
+                execute_statement(consequence, environ.clone())?;
+            } else if let Some(alternative) = alternative {
+                execute_statement(alternative, environ.clone())?;
+            }
+        }
     }
 
     Ok(()) // statements do not produce values.

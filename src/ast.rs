@@ -175,6 +175,15 @@ pub enum Statements {
     SBlock {
         statements: Vec<Statements>,
     },
+    SIf {
+        condition: Expr,
+        consequence: Box<Statements>,
+        alternative: Option<Box<Statements>>,
+    },
+    SWhile {
+        condition: Expr,
+        consequence: Box<Statements>,
+    },
 }
 
 // constructors for statements
@@ -196,6 +205,24 @@ impl Statements {
 
     pub fn block(statements: Vec<Statements>) -> Statements {
         Self::SBlock { statements }
+    }
+    pub fn if_stmt(
+        condition: Expr,
+        consequence: Statements,
+        alternative: Option<Statements>,
+    ) -> Statements {
+        Self::SIf {
+            condition,
+            consequence: consequence.into(),
+            alternative: alternative.map(|alt| Box::new(alt)),
+        }
+    }
+
+    pub fn while_stmt(condition: Expr, consequence: Statements) -> Statements {
+        Self::SWhile {
+            condition,
+            consequence: consequence.into(),
+        }
     }
 }
 

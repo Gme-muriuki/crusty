@@ -169,6 +169,10 @@ impl Parser {
             self.parse_print_statement()
         } else if self.accept(TokenType::LeftBraces) {
             self.parse_block()
+        } else if self.accept(TokenType::If) {
+            self.parse_if_block()
+        } else if self.accept(TokenType::While) {
+            self.parse_while_block()
         } else {
             self.parse_expression_statement()
         }
@@ -182,6 +186,29 @@ impl Parser {
         self.consume(TokenType::RightBraces, "Expected '}' after block");
 
         Ok(Statements::block(stmts))
+    }
+
+    pub fn parse_if_block(&mut self) -> Result<Statements, ParseError> {
+        self.consume(TokenType::LeftParen, "Expected '(' after if ");
+        let condition = self.parse_expr()?;
+        self.consume(TokenType::RightParen, "Expected ')' at the end");
+        let consequence = self.parse_statement()?;
+        let mut alternative = None;
+        if self.accept(TokenType::Else) {
+            alternative = Some(self.parse_statement()?);
+        }
+
+        Ok(Statements::if_stmt(condition, consequence, alternative))
+    }
+
+    pub fn parse_while_block(&mut self) -> Result<Statements, ParseError> {
+        self.consume(TokenType::LeftParen, "Expected '(' after while");
+        let condition = self.parse_expr()?;
+        self.consume(TokenType::RightParen, "Expected ')' at the end");
+
+        let consequence = self.parse_statement()?;
+
+        Ok(Statements::while_stmt(condition, consequence))
     }
 
     pub fn parse_declaration(&mut self) -> Result<Statements, ParseError> {
