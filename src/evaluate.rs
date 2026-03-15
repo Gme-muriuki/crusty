@@ -4,7 +4,7 @@ use crate::{
     ast::{
         AST, Expr,
         Operator::{self, *},
-        Stmt,
+        Statements,
     },
     environ::Environment,
 };
@@ -137,7 +137,6 @@ pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, Eval
 
         // !FIXME!!
         Expr::EVariable { name } => {
-            dbg!(&name);
             if let Some(value) = environ.lookup(name) {
                 value
             } else {
@@ -157,7 +156,10 @@ pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, Eval
     })
 }
 
-pub fn execute_statements(statements: Vec<Stmt>, environ: Rc<Env>) -> Result<(), EvaluateError> {
+pub fn execute_statements(
+    statements: Vec<Statements>,
+    environ: Rc<Env>,
+) -> Result<(), EvaluateError> {
     // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
     for stmt in statements.iter() {
         execute_statement(stmt, environ.clone())?
@@ -165,17 +167,17 @@ pub fn execute_statements(statements: Vec<Stmt>, environ: Rc<Env>) -> Result<(),
     Ok(())
 }
 
-pub fn execute_statement(statement: &Stmt, environ: Rc<Env>) -> Result<(), EvaluateError> {
+pub fn execute_statement(statement: &Statements, environ: Rc<Env>) -> Result<(), EvaluateError> {
     // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
     match statement {
-        Stmt::SPrint { expression } => {
+        Statements::SPrint { expression } => {
             let value = evaluate_expression(expression, environ)?;
             println!("{}", value);
         }
-        Stmt::SExpression { expression } => {
+        Statements::SExpression { expression } => {
             evaluate_expression(expression, environ);
         }
-        Stmt::SVar { name, initializer } => {
+        Statements::SVar { name, initializer } => {
             let value = match initializer {
                 Some(value) => evaluate_expression(value, environ.clone())?,
                 None => LoxValue::LNill,
@@ -183,10 +185,15 @@ pub fn execute_statement(statement: &Stmt, environ: Rc<Env>) -> Result<(), Evalu
 
             environ.declare(name, value);
         }
+        Statements::SBlock { statements } => {
+            let new_env = Environment::new(Some(environ));
+            execute_statements(statements.clone(), new_env);
+        }
     }
 
     Ok(()) // statements do not produce values.
 }
+
 #[cfg(test)]
 mod test {
     use super::*;

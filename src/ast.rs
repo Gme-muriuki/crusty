@@ -4,7 +4,7 @@ use crate::tokenize::{Literal, Token, TokenType};
 
 #[derive(Debug, PartialEq)]
 pub struct AST {
-    pub top: Vec<Stmt>,
+    pub top: Vec<Statements>,
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -44,7 +44,7 @@ impl Display for Operator {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     EBinary {
         left: Box<Expr>,
@@ -160,8 +160,8 @@ pub fn fmt_expr(e: Expr) -> String {
 }
 
 // Statements
-#[derive(Debug, PartialEq)]
-pub enum Stmt {
+#[derive(Debug, Clone, PartialEq)]
+pub enum Statements {
     SPrint {
         expression: Expr,
     },
@@ -172,23 +172,30 @@ pub enum Stmt {
         name: String,
         initializer: Option<Expr>,
     },
+    SBlock {
+        statements: Vec<Statements>,
+    },
 }
 
 // constructors for statements
-impl Stmt {
-    pub fn print(expression: Expr) -> Stmt {
-        Stmt::SPrint { expression }
+impl Statements {
+    pub fn print(expression: Expr) -> Statements {
+        Statements::SPrint { expression }
     }
 
-    pub fn expression(expression: Expr) -> Stmt {
-        Stmt::SExpression { expression }
+    pub fn expression(expression: Expr) -> Statements {
+        Statements::SExpression { expression }
     }
 
-    pub fn var(name: impl Into<String>, initializer: Option<Expr>) -> Stmt {
-        Stmt::SVar {
+    pub fn var(name: impl Into<String>, initializer: Option<Expr>) -> Statements {
+        Statements::SVar {
             name: name.into(),
             initializer,
         }
+    }
+
+    pub fn block(statements: Vec<Statements>) -> Statements {
+        Self::SBlock { statements }
     }
 }
 

@@ -28,13 +28,10 @@ impl<V: Clone> Environment<V> {
         // Lookup value of a variable might not exist.
         // TODO... Must check parent.
         if let Some(value) = self.vars.borrow().get(name) {
-            dbg!("I'm in the lookup child");
             Some(value.clone())
         } else if let Some(ref parent) = self.parent {
-            dbg!("I'm in the lookup parent");
             parent.lookup(name)
         } else {
-            dbg!("I'm in the lookup None");
             return None;
         }
     }

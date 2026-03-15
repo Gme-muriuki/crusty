@@ -1,5 +1,5 @@
 use crate::{
-    ast::{AST, Expr, Operator, Stmt},
+    ast::{AST, Expr, Operator, Statements},
     tokenize::{Token, TokenType, Tokens},
 };
 
@@ -77,12 +77,14 @@ impl Parser {
             Ok(())
         }
     }
-
     fn syntax_error(&self, msg: impl Into<String>) -> ParseError {
         ParseError::SyntaxError {
             line: self.tokens[self.size].line,
             msg: format!("{} at {:?}", msg.into(), self.tokens[self.size].lexeme),
         }
+    }
+    fn check(&self, toktype: TokenType) -> bool {
+        !self.at_end() && self.tokens[self.size].toktype == toktype
     }
 
     fn parse_primary(&mut self) -> Result<Expr, ParseError> {
@@ -153,7 +155,7 @@ impl Parser {
     }
 
     // Parsing expression
-    pub fn parse_statements(&mut self) -> Result<Vec<Stmt>, ParseError> {
+    pub fn parse_statements(&mut self) -> Result<Vec<Statements>, ParseError> {
         // parse zero or more statements until we reach the end of the file. Each statement can be a print statement, an expression statement, a variable declaration, etc.
         let mut statements = Vec::new();
         while !self.at_end() {
@@ -161,30 +163,42 @@ impl Parser {
         }
         Ok(statements)
     }
-    pub fn parse_statement(&mut self) -> Result<Stmt, ParseError> {
+    pub fn parse_statement(&mut self) -> Result<Statements, ParseError> {
         // parse a single statement, which can be a print statement, an expression statement, a variable declaration, etc.
         if self.accept(TokenType::Print) {
             self.parse_print_statement()
+        } else if self.accept(TokenType::LeftBraces) {
+            self.parse_block()
         } else {
             self.parse_expression_statement()
         }
     }
 
-    pub fn parse_declaration(&mut self) -> Result<Stmt, ParseError> {
+    pub fn parse_block(&mut self) -> Result<Statements, ParseError> {
+        let mut stmts: Vec<Statements> = Vec::new();
+        while !self.check(TokenType::RightBraces) && !self.at_end() {
+            stmts.push(self.parse_declaration()?);
+        }
+        self.consume(TokenType::RightBraces, "Expected '}' after block");
+
+        Ok(Statements::block(stmts))
+    }
+
+    pub fn parse_declaration(&mut self) -> Result<Statements, ParseError> {
         if self.accept(TokenType::Var) {
             self.parse_var_declaration()
         } else {
             self.parse_statement()
         }
     }
-    pub fn parse_print_statement(&mut self) -> Result<Stmt, ParseError> {
+    pub fn parse_print_statement(&mut self) -> Result<Statements, ParseError> {
         // parse a print statement, which consists of the 'print' keyword followed by an expression and a semicolon.
         let value = self.parse_expr()?;
         self.consume(TokenType::SemiColon, "Expected ';' after value")?;
-        Ok(Stmt::print(value))
+        Ok(Statements::print(value))
     }
 
-    pub fn parse_var_declaration(&mut self) -> Result<Stmt, ParseError> {
+    pub fn parse_var_declaration(&mut self) -> Result<Statements, ParseError> {
         self.consume(TokenType::Identifier, "Expected a variable name");
         let name = self.last_lexeme().clone();
 
@@ -196,7 +210,7 @@ impl Parser {
             TokenType::SemiColon,
             "Expected ';' after the variable declaration",
         );
-        Ok(Stmt::var(name, initializer))
+        Ok(Statements::var(name, initializer))
     }
 
     pub fn parse_assignment(&mut self) -> Result<Expr, ParseError> {
@@ -214,11 +228,11 @@ impl Parser {
         Ok(expr)
     }
 
-    pub fn parse_expression_statement(&mut self) -> Result<Stmt, ParseError> {
+    pub fn parse_expression_statement(&mut self) -> Result<Statements, ParseError> {
         // parse an expression statement, which consists of an expression followed by a semicolon.
         let value = self.parse_expr()?;
         self.consume(TokenType::SemiColon, "Expected ';' after value {value:?}");
-        Ok(Stmt::expression(value))
+        Ok(Statements::expression(value))
     }
 }
 
