@@ -24,7 +24,7 @@ impl Interpreter {
             top_level: Environment::new(None),
         }
     }
-    pub fn evaluate(&mut self, ast: AST) -> Result<(), EvError> {
+    pub fn evaluate(&mut self, ast: AST) -> Result<(), EvaluateError> {
         execute_statements(ast.top, self.top_level.clone());
 
         Ok(())
@@ -51,10 +51,11 @@ impl Display for LoxValue {
 }
 
 #[derive(Debug)]
-pub enum EvError {
+pub enum EvaluateError {
     ZeroDivision,
     UnsupportedBinOps(LoxValue, Operator, LoxValue),
     UnsupportedUnaryOps(Operator, LoxValue),
+    NotFound(String),
 }
 
 impl LoxValue {
@@ -66,14 +67,14 @@ impl LoxValue {
     }
 }
 
-pub fn evaluate(ast: AST) -> Result<(), EvError> {
+pub fn evaluate(ast: AST) -> Result<(), EvaluateError> {
     println!("Evaluating....");
     let mut environ = Environment::new(None);
     execute_statements(ast.top, environ)?;
     Ok(())
 }
 
-pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, EvError> {
+pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, EvaluateError> {
     Ok(match expr {
         Expr::EBinary {
             left,
@@ -93,7 +94,7 @@ pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, EvEr
                 }
                 (LoxValue::LNumber(left), ODiv, LoxValue::LNumber(right)) => {
                     if *right == 0.0 {
-                        return Err(EvError::ZeroDivision);
+                        return Err(EvaluateError::ZeroDivision);
                     }
                     LoxValue::LNumber(left / right)
                 }
@@ -111,7 +112,13 @@ pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, EvEr
                 (left, OGeq, right) => LoxValue::LBoolean(left >= right),
                 (left, OEq, right) => LoxValue::LBoolean(left == right),
                 (left, ONeq, right) => LoxValue::LBoolean(left != right),
-                _ => return Err(EvError::UnsupportedBinOps(left, operator.clone(), right)),
+                _ => {
+                    return Err(EvaluateError::UnsupportedBinOps(
+                        left,
+                        operator.clone(),
+                        right,
+                    ));
+                }
             }
         }
         Expr::EGrouping { expression } => evaluate_expression(&expression, environ)?,
@@ -124,20 +131,33 @@ pub fn evaluate_expression(expr: &Expr, environ: Rc<Env>) -> Result<Output, EvEr
             match (operator, &rv) {
                 (OSub, LoxValue::LNumber(right)) => LoxValue::LNumber(-right),
                 (ONot, right) => LoxValue::LBoolean(!right.is_truthy()),
-                _ => return Err(EvError::UnsupportedUnaryOps(operator.clone(), rv)),
+                _ => return Err(EvaluateError::UnsupportedUnaryOps(operator.clone(), rv)),
             }
         }
-        Expr::EVarDecl { name } => environ.lookup(name).unwrap().clone(),
+
+        // !FIXME!!
+        Expr::EVariable { name } => {
+            dbg!(&name);
+            if let Some(value) = environ.lookup(name) {
+                value
+            } else {
+                return Err(EvaluateError::NotFound(name.clone()));
+            }
+        }
+
+        // !FIXME!!
         Expr::EAssign { name, value } => {
             let value = evaluate_expression(&*value, environ.clone())?;
-            environ.assign(value.clone(), name);
-
-            value
+            if let Some(value) = environ.assign(value.clone(), name) {
+                value
+            } else {
+                return Err(EvaluateError::NotFound(name.clone()));
+            }
         }
     })
 }
 
-pub fn execute_statements(statements: Vec<Stmt>, environ: Rc<Env>) -> Result<(), EvError> {
+pub fn execute_statements(statements: Vec<Stmt>, environ: Rc<Env>) -> Result<(), EvaluateError> {
     // Evaluate a sequence of statements, which can include print statements, variable declarations, etc.
     for stmt in statements.iter() {
         execute_statement(stmt, environ.clone())?
@@ -145,7 +165,7 @@ pub fn execute_statements(statements: Vec<Stmt>, environ: Rc<Env>) -> Result<(),
     Ok(())
 }
 
-pub fn execute_statement(statement: &Stmt, environ: Rc<Env>) -> Result<(), EvError> {
+pub fn execute_statement(statement: &Stmt, environ: Rc<Env>) -> Result<(), EvaluateError> {
     // Evaluate a single statement, which can be a print statement, a variable declaration, etc.
     match statement {
         Stmt::SPrint { expression } => {

@@ -68,7 +68,7 @@ pub enum Expr {
         operator: Operator,
         right: Box<Expr>,
     },
-    EVarDecl {
+    EVariable {
         name: String,
     },
     EAssign {
@@ -113,7 +113,7 @@ impl Expr {
         }
     }
     pub fn variable(name: impl Into<String>) -> Expr {
-        Expr::EVarDecl { name: name.into() }
+        Expr::EVariable { name: name.into() }
     }
 
     pub fn assign(name: impl Into<String>, value: Expr) -> Expr {
@@ -154,7 +154,7 @@ pub fn fmt_expr(e: Expr) -> String {
         Expr::EBool { value } => {
             format!("{:?}", value)
         }
-        Expr::EVarDecl { name } => format!("{name}"),
+        Expr::EVariable { name } => format!("{name}"),
         Expr::EAssign { name, value } => format!("assign {} {}", name, fmt_expr(*value)),
     }
 }

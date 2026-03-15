@@ -27,10 +27,11 @@ impl From<&Token> for Operator {
 
 #[derive(Debug)]
 struct Parser {
-    // Parsing involves left-to-right scan over tokens. Sometimes peeking ahead if necessary.!!
+    // Parsing involves left-to-right scan over tokens. Sometimes peeking ahead if necessary (check tokenizer file).!!
     tokens: Vec<Token>,
     size: usize,
 }
+
 #[derive(Debug)]
 pub enum ParseError {
     SyntaxError { line: usize, msg: String },
@@ -203,7 +204,7 @@ impl Parser {
 
         if self.accept(TokenType::Equal) {
             let value = self.parse_assignment()?;
-            if let Expr::EVarDecl { name } = expr {
+            if let Expr::EVariable { name } = expr {
                 return Ok(Expr::assign(name, value));
             } else {
                 panic!("Invalid assignment target")

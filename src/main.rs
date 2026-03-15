@@ -51,14 +51,14 @@ fn run_prompt() {
     let mut stdin = stdin();
     let mut interpreter = Interpreter::new();
     'lox: loop {
-        stdout.write_all(b">").unwrap();
+        stdout.write_all(b"> ").unwrap();
         stdout.flush().unwrap();
         let mut buffer = String::new();
         stdin.read_line(&mut buffer).expect("Failed to read input");
         let source = reader::Source::new(buffer);
 
         match run_interpreter(source, &mut interpreter) {
-            Ok(_) => println!("Hexa"),
+            Ok(_) => println!("Program run successfully"),
             Err(e) => eprintln!("{:#?}", e),
         }
     }

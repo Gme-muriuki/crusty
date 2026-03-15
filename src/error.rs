@@ -17,7 +17,7 @@ pub enum InterpreterError {
     Reader(reader::ReadError),
     Tokenizer(tokenize::TokenizeError),
     Parser(parser::ParseError),
-    Evaluator(evaluate::EvError),
+    Evaluator(evaluate::EvaluateError),
 }
 
 impl From<reader::ReadError> for InterpreterError {
@@ -38,8 +38,8 @@ impl From<parser::ParseError> for InterpreterError {
     }
 }
 
-impl From<evaluate::EvError> for InterpreterError {
-    fn from(error: evaluate::EvError) -> Self {
+impl From<evaluate::EvaluateError> for InterpreterError {
+    fn from(error: evaluate::EvaluateError) -> Self {
         InterpreterError::Evaluator(error)
     }
 }
@@ -61,12 +61,15 @@ pub fn report_error(error: InterpreterError) {
             }
         },
         InterpreterError::Evaluator(ev_error) => match ev_error {
-            evaluate::EvError::ZeroDivision => eprintln!("Division by zero"),
-            evaluate::EvError::UnsupportedBinOps(left, operator, right) => {
+            evaluate::EvaluateError::ZeroDivision => eprintln!("Division by zero"),
+            evaluate::EvaluateError::UnsupportedBinOps(left, operator, right) => {
                 eprintln!("Unsupported operation: {left:?} {operator:?} {right:?}")
             }
-            evaluate::EvError::UnsupportedUnaryOps(operator, left) => {
+            evaluate::EvaluateError::UnsupportedUnaryOps(operator, left) => {
                 eprintln!("Unsupported operation: {operator:?} {left:?}")
+            }
+            evaluate::EvaluateError::NotFound(name) => {
+                eprintln!("{name} not found")
             }
         },
     }
