@@ -1,4 +1,11 @@
 #![allow(unused)]
+//! # Error Handling Module
+//!
+//! This module provides unified error handling across all phases of the interpreter.
+//! It defines a top-level InterpreterError enum that can represent errors from
+//! reading, tokenization, parsing, or evaluation. Error conversion traits allow
+//! automatic propagation of errors up the call stack.
+
 use std::{
     env,
     io::{Write, stdin, stdout},
@@ -12,11 +19,19 @@ use crate::{
     tokenize::{self, TokenizeError, tokenize},
 };
 
+/// Top-level error type encompassing all possible interpreter errors.
+///
+/// This enum unifies errors from different phases of interpretation,
+/// allowing consistent error handling and reporting throughout the codebase.
 #[derive(Debug)]
 pub enum InterpreterError {
+    /// File I/O errors during source reading
     Reader(reader::ReadError),
+    /// Lexical analysis errors during tokenization
     Tokenizer(tokenize::TokenizeError),
+    /// Syntax analysis errors during parsing
     Parser(parser::ParseError),
+    /// Runtime errors during evaluation
     Evaluator(evaluate::EvaluateError),
 }
 
@@ -44,6 +59,14 @@ impl From<evaluate::EvaluateError> for InterpreterError {
     }
 }
 
+/// Reports an interpreter error to stderr with appropriate formatting.
+///
+/// This function provides user-friendly error messages by pattern matching
+/// on the error type and extracting relevant information like line numbers
+/// and descriptive messages.
+///
+/// # Arguments
+/// * `error` - The interpreter error to report
 pub fn report_error(error: InterpreterError) {
     match error {
         InterpreterError::Reader(rerror) => {

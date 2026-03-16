@@ -1,6 +1,15 @@
 [package]
-name = "crusty"
+name = "lox-interpreter"
 version = "0.1.0"
 edition = "2024"
+description = "A Lox programming language interpreter written in Rust"
+license = "MIT OR Apache-2.0"
+keywords = ["interpreter", "lox", "language", "programming"]
+categories = ["command-line-utilities", "parser-implementations"]
+repository = "https://github.com/yourusername/lox-interpreter"
+homepage = "https://github.com/yourusername/lox-interpreter"
+documentation = "https://docs.rs/lox-interpreter"
+readme = "README.md"
+authors = ["James Muriuki <geniusinrust@gmail.com>"]
 
 [dependencies]

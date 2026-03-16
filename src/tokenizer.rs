@@ -1,6 +1,6 @@
 use std::{
     char,
-    iter::{Peekable, Scan},
+    iter::{Peekable},
     ops::Range,
     str::CharIndices,
 };
@@ -61,6 +61,7 @@ use TokenType::*;
 
 use crate::reader::Source;
 
+#[allow(unused)]
 #[derive(Debug)]
 pub struct TError {
     error: Vec<ScanError>,
@@ -100,7 +101,7 @@ pub fn accepts(
     toktype: TokenType,
     start: usize,
 ) -> Option<(TokenType, Range<usize>)> {
-    let (n, ch) = chars.next()?;
+    let (n, _ch) = chars.next()?;
     Some((toktype, start..n + 1))
 }
 
@@ -129,7 +130,7 @@ pub fn map_keywords(lexeme: &str) -> TokenType {
 pub fn scan_tokens(lexeme: String) -> Result<Tokens, TError> {
     let mut chars = lexeme.char_indices().peekable();
     let mut result = Vec::new();
-    let mut line = 1;
+    let line = 1;
     while let Some((mut toktype, range)) = scan_token(&mut chars) {
         if toktype == TIgnore {
             continue;
@@ -209,7 +210,7 @@ fn scan_compare_symbols(chars: &mut Chars) -> Option<(TokenType, Range<usize>)> 
             _ = chars.next();
             if peek(chars, '/') {
                 let mut end = start;
-                while let Some(&(idx, char)) = chars.peek() {
+                while let Some(&(idx, _char)) = chars.peek() {
                     end = idx;
                     if ch == '\n' {
                         break;
@@ -331,7 +332,7 @@ mod test {
 
     #[test]
     fn test_single_character() {
-        let mut tokens = scan_tokens("(){},.+-;*/".to_string()).unwrap();
+        let tokens = scan_tokens("(){},.+-;*/".to_string()).unwrap();
 
         assert_eq!(
             tokens.tokens,
@@ -354,7 +355,7 @@ mod test {
 
     #[test]
     fn test_double_character() {
-        let mut tokens = scan_tokens("! != < <= > >= == =".to_string()).unwrap();
+        let tokens = scan_tokens("! != < <= > >= == =".to_string()).unwrap();
         assert_eq!(
             tokens.tokens,
             vec![
@@ -373,7 +374,7 @@ mod test {
 
     #[test]
     fn test_string() {
-        let mut tokens = scan_tokens("\"Hello\" \"world\"".to_string()).unwrap();
+        let tokens = scan_tokens("\"Hello\" \"world\"".to_string()).unwrap();
         assert_eq!(
             tokens.tokens,
             vec![
@@ -385,7 +386,7 @@ mod test {
     }
     #[test]
     fn test_number() {
-        let mut tokens = scan_tokens("1234 231.23".to_string()).unwrap();
+        let tokens = scan_tokens("1234 231.23".to_string()).unwrap();
         assert_eq!(
             tokens.tokens,
             vec![
@@ -396,9 +397,9 @@ mod test {
         )
     }
 
-    #[ignore = "not yet"]
+    #[test]
     fn test_keywords() {
-        let mut tokens = scan_tokens(
+        let tokens = scan_tokens(
             "class and if while else false for fun nil or print return super this true var "
                 .to_string(),
         )

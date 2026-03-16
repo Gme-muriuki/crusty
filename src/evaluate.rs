@@ -1,4 +1,11 @@
-use std::{collections::btree_map::Values, fmt::Display, ops, rc::Rc};
+//! # Evaluation Module
+//!
+//! This module implements the runtime execution engine for the Lox interpreter.
+//! It evaluates expressions and executes statements, managing the global environment
+//! and handling control flow. The evaluator implements Lox's runtime semantics
+//! including operator evaluation, variable lookup/assignment, and statement execution.
+
+use std::{fmt::Display, rc::Rc};
 
 use crate::{
     ast::{
@@ -9,33 +16,66 @@ use crate::{
     environ::Environment,
 };
 
+/// Type alias for runtime values produced by evaluation.
 pub type Output = LoxValue;
 
+/// Type alias for the environment storing Lox values.
 pub type Env = Environment<LoxValue>;
 
+/// The main interpreter that executes Lox programs.
+///
+/// Maintains the top-level environment and coordinates the evaluation
+/// of statements and expressions.
+///
+/// # Examples
+/// ```rust
+/// use crusty::evaluate::Interpreter;
+/// use crusty::ast::AST;
+///
+/// let mut interpreter = Interpreter::new();
+/// // interpreter.evaluate(ast); // Would evaluate an AST
+/// ```
 #[derive(Debug, Clone)]
 pub struct Interpreter {
+    /// The global environment for variable storage
     top_level: Rc<Env>,
 }
 
 impl Interpreter {
+    /// Creates a new interpreter with an empty global environment.
     pub fn new() -> Self {
         Self {
             top_level: Environment::new(None),
         }
     }
+
+    /// Evaluates an AST by executing all top-level statements.
+    ///
+    /// # Arguments
+    /// * `ast` - The abstract syntax tree to evaluate
+    ///
+    /// # Returns
+    /// * `Ok(())` on successful execution, `Err(EvaluateError)` on runtime error
     pub fn evaluate(&mut self, ast: AST) -> Result<(), EvaluateError> {
-        execute_statements(ast.top, self.top_level.clone());
+        execute_statements(ast.top, self.top_level.clone())?;
 
         Ok(())
     }
 }
 
+/// Runtime values in the Lox language.
+///
+/// Lox has four value types: nil, booleans, numbers, and strings.
+/// Numbers are stored as 64-bit floats.
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum LoxValue {
+    /// The nil value (Lox's null/undefined)
     LNill,
+    /// Boolean values
     LBoolean(bool),
+    /// Numeric values (stored as f64)
     LNumber(f64),
+    /// String values
     LString(String),
 }
 
@@ -69,7 +109,7 @@ impl LoxValue {
 
 pub fn evaluate(ast: AST) -> Result<(), EvaluateError> {
     println!("Evaluating....");
-    let mut environ = Environment::new(None);
+    let environ = Environment::new(None);
     execute_statements(ast.top, environ)?;
     Ok(())
 }
@@ -175,7 +215,7 @@ pub fn execute_statement(statement: &Statements, environ: Rc<Env>) -> Result<(),
             println!("{}", value);
         }
         Statements::SExpression { expression } => {
-            evaluate_expression(expression, environ);
+            evaluate_expression(expression, environ)?;
         }
         Statements::SVar { name, initializer } => {
             let value = match initializer {
@@ -187,7 +227,7 @@ pub fn execute_statement(statement: &Statements, environ: Rc<Env>) -> Result<(),
         }
         Statements::SBlock { statements } => {
             let new_env = Environment::new(Some(environ));
-            execute_statements(statements.clone(), new_env);
+            execute_statements(statements.clone(), new_env)?;
         }
         Statements::SWhile {
             condition,
@@ -215,8 +255,24 @@ pub fn execute_statement(statement: &Statements, environ: Rc<Env>) -> Result<(),
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use crate::evaluate::Interpreter;
+    use crate::reader::Source;
 
+    #[test]
+    fn test_evaluate() {
+        let source = Source::new(
+            r#"
+              print "Hello, World!";
+              var x = 10;
+              print x + 5;
+          "#
+            .to_string(),
+        );
+
+        let ast = crate::parser::parse(crate::tokenize(source).unwrap()).unwrap();
+        let mut interpreter = Interpreter::new();
+        assert!(interpreter.evaluate(ast).is_ok());
+    }
     #[test]
     fn is_alive() {
         assert_eq!(true, true)
